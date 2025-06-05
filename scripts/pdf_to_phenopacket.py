@@ -39,9 +39,10 @@ def pdf_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str):
             with open(f"{out_dir}/{pdf_file_name.split(".")[0]}.json", "w") as f:
                 json.dump(phenopacket_json, f)
         except json.decoder.JSONDecodeError:
-            click.echo(
+            click.secho(
                 message=f"{model} did not convert {pdf_file_name} into valid json format",
                 err=True,
+                fg="red",
             )
 
 
