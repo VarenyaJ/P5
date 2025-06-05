@@ -12,13 +12,16 @@ import json
 @click.argument("model", type=click.STRING)
 def pdf_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str):
     """This script converts a PDF file to a Phenopacket file."""
-    pdf_files = [
+    pdf_file_directories = [
         f"{file_dir}/{f}"
         for f in os.listdir(file_dir)
         if os.path.isfile(f"{file_dir}/{f}") and f.endswith(".pdf")
     ]
     converter = DocumentConverter()
-    llm_ready_pdfs = {pdf.split("/")[-1]: converter.convert(pdf) for pdf in pdf_files}
+    llm_ready_pdfs = {
+        pdf_dir.split("/")[-1]: converter.convert(pdf_dir)
+        for pdf_dir in pdf_file_directories
+    }
 
     for pdf_file_name, pdf_file in llm_ready_pdfs.items():
         response: ChatResponse = chat(
