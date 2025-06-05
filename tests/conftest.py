@@ -1,3 +1,3 @@
 import os
 
-CI = os.getenv("GITHUB_ACTIONS")
+CI = bool(os.getenv("GITHUB_ACTIONS"))
