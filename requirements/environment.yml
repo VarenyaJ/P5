@@ -1,0 +1,9 @@
+name: p5
+channels:
+  - defaults
+dependencies:
+  - python= 3.13
+  - pip:
+      - r requirements.txt
+      - r requirements_scripts.txt
+      - r requirements_test.txt
