@@ -5,10 +5,11 @@ from unittest import mock
 from click.testing import CliRunner
 from joblib.testing import skipif
 
-from conftest import CI
 from scripts.pdf_to_phenopacket import pdf_to_phenopacket
 import pathlib
 import tempfile
+
+CI = bool(os.getenv("GITHUB_ACTIONS"))
 
 
 @skipif(CI, reason="CI needs internet access for this test")
@@ -55,7 +56,7 @@ def test_pdf_to_phenopacket_mocked(mock_ollama_chat, request):
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         result = runner.invoke(
-            pdf_to_phenopacket,  # This should be your actual script/function
+            pdf_to_phenopacket,
             [
                 asset_dir,
                 tmpdirname,
