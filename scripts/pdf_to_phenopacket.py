@@ -11,6 +11,7 @@ import json
 @click.argument("prompt", type=click.STRING)
 @click.argument("model", type=click.STRING)
 def pdf_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str):
+    """This script converts a PDF file to a Phenopacket file."""
     pdf_files = [
         f"{file_dir}/{f}"
         for f in os.listdir(file_dir)
