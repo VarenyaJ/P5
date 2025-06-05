@@ -1,1 +1,3 @@
-
+ollama==0.5.1
+llama-index==0.12.4
+docling==2.36.1
