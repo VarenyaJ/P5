@@ -5,5 +5,5 @@ Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 To create the env execute:
 
 ``
-conda env create -f environment.yml
+conda env create -f requirements/environment.yml
 ``
