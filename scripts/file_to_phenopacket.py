@@ -35,22 +35,22 @@ def file_to_phenopacket(
         if os.path.isfile(f"{file_dir}/{f}") and f.endswith(file_type)
     ]
 
-    llm_ready_text: dict[str, str] = dict()
+    filename_to_content: dict[str, str] = dict()
     if file_type.lower() in [".pdf", ".pptx", ".docx", ".doc", ".html"]:
         converter = DocumentConverter()
-        llm_ready_text = {
+        filename_to_content = {
             file_dir.split("/")[-1]: converter.convert(
                 file_dir
             ).document.export_to_text()
             for file_dir in file_dirs
         }
     elif file_type.lower() == ".txt":
-        llm_ready_text = {
+        filename_to_content = {
             file_dir.split("/")[-1]: open(file_dir).read().split("[text]")[-1]
             for file_dir in file_dirs
         }
 
-    for file_name, text in llm_ready_text.items():
+    for file_name, text in filename_to_content.items():
         response: ChatResponse = chat(
             model=model,
             messages=[
