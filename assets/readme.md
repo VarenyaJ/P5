@@ -1,1 +1,0 @@
-These files were taken from: https://github.com/P2GX/phenopacket2prompt/tree/1130014fbb0843b11e6ca38ccf24da148f70af8c/docs/cases
