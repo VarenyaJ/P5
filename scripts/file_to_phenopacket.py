@@ -16,6 +16,7 @@ file_types = [".pdf", ".pptx", ".docx", ".doc", ".html", ".txt"]
     "--file-type",
     type=click.Choice(file_types, case_sensitive=False),
     help=f"The type of file to process. Possible types are: {file_types}",
+    default=".pdf",
 )
 def file_to_phenopacket(
     file_dir: str,
