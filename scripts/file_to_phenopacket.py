@@ -63,7 +63,6 @@ def file_to_phenopacket(
 
         try:
             phenopacket_json = json.loads(response["message"]["content"])
-            click.echo(phenopacket_json)
             with open(f"{out_dir}/{file_name.split(".")[0]}.json", "w") as f:
                 json.dump(phenopacket_json, f)
         except json.decoder.JSONDecodeError:
