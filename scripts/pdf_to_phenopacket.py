@@ -45,6 +45,5 @@ def pdf_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str):
                 fg="red",
             )
 
-
 if __name__ == "__main__":
     pdf_to_phenopacket()
