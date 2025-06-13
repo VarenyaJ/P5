@@ -22,5 +22,5 @@ python
 
 If you successfully installed the model switch into the scripts directory and:
 ```shell 
-python pdf_converter.py <input_dir> <output_dir> "<prompt>" "<model>" --
+python pdf_converter.py <input_dir> <output_dir> "<prompt>" "<model>" --file-type .pdf
 ```
