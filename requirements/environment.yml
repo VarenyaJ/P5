@@ -7,6 +7,6 @@ dependencies:
  - python=3.13              # lock to the exact interpreter version you're targeting
 
  - pip:
-   - -r requirements/requirements.txt            # core LLM & converter libraries (ollama, llama-index, docling)
-   - -r requirements/requirements_scripts.txt    # CLI helpers like click
-   - -r requirements/requirements_test.txt       # testing & formatting (pytest, black)
+   - -r requirements.txt            # core LLM & converter libraries (ollama, llama-index, docling)
+   - -r requirements_scripts.txt    # CLI helpers like click
+   - -r requirements_test.txt       # testing & formatting (pytest, black)
