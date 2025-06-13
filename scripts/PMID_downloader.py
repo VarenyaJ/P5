@@ -3,22 +3,27 @@ from Bio import Entrez
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
+import click
 
-#This is for using the PubMed API
-Entrez.email = "patrick-simon.nairne@bih-charite.de"
+#This is for using the PubMed API. Don't upload your actual email to GitHub :)
+Entrez.email = "your-email-here.de"
 
-#This function takes the path of a .txt file with lines of the form PMID_1234567
-#and returns a list of the form [1234567,...]
-def pmid_list_maker(txt_file_path):
+def pmid_list_maker(txt_file_path: str) -> list[str]:
+    """This function takes the path of a .txt file with lines of the form PMID_1234567
+    and returns a list of the form [1234567,...]"""
+
     pmid_list = []
     with open(txt_file_path, 'r') as file:
         for line in file:
             pmid_list.append(line[5:].rstrip())
     return pmid_list
 
-#this function uses the PMID API to get a PMC ID from a PMID
-#once we have a PMC ID we can use that to get the URL of a PDF
-def get_pmc_id(pmid):
+
+def get_pmc_id(pmid: str) -> str
+    """this function uses the PMID API to get a PMC ID from a PMID
+    once we have a PMC ID we can use that to get the URL of a PDF
+    """
+
     # Fetch links for the PubMed ID to find PMC ID
     handle = Entrez.elink(dbfrom="pubmed", db="pmc", id=pmid, linkname="pubmed_pmc")
     records = Entrez.read(handle)
@@ -30,11 +35,13 @@ def get_pmc_id(pmid):
     pmc_id = linksets[0]["Link"][0]["Id"]
     return pmc_id
 
-#this takes the URL of the PDF on PMC
-#uses Selenium to avoid anti-web-scraping JavaScript challenges
-#and then downloads the PDF using requests
-#we need to use the cookies of the Selenium browser and pause for 5 seconds to trick the webpage
-def download_pdf(pdf_url, pmid):
+def download_pdf(pdf_url: str, pmid: str):
+    """
+    this takes the URL of the PDF on PMC
+    uses Selenium to avoid anti-web-scraping JavaScript challenges
+    and then downloads the PDF using requests
+    we need to use the cookies of the Selenium browser and pause for 5 seconds to trick the webpage
+    """
 
     try:
         # set up the Selenium browser
@@ -75,8 +82,10 @@ def download_pdf(pdf_url, pmid):
     except:
         print(f"An error occurred downloading PMID_{pmid}")
 
-def main():
-    pmids = pmid_list_maker("pmid_list.txt")
+@click.command()
+@click.argument(pmid_file_dir, type=click.Path(exists=True))
+def PMID_downloader(pmid_file_dir: str):
+    pmids = pmid_list_maker(pmid_file_dir)
     for pmid in pmids:
         print(f"Processing PMID {pmid}...")
         pmc_id = get_pmc_id(pmid)
@@ -87,4 +96,4 @@ def main():
         download_pdf(pdf_url, pmid)
 
 if __name__ == "__main__":
-    main()
+    PMID_downloader()
