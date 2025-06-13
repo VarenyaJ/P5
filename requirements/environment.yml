@@ -1,15 +1,10 @@
 name: p5
 channels:
- - conda-forge      # priority channel for up-to-date, cross-compiled packages (biopython, selenium, and other packages we might need)
- - defaults         # fallback to packages from default channel
+ - conda-forge              # priority channel for up-to-date, cross-compiled packages (biopython, selenium, and other packages we might need)
+ - defaults                 # fallback to packages from default channel
 
 dependencies:
- - python=3.13      # lock to the exact interpreter version you're targeting
- - requests         # HTTP client used by scripts to call PubMed/Europe PMC APIs
- - biopython        # provides Bio.Entrez for PubMed/PMC lookups and efetch
- - selenium         # optional JS-driven fallback for tricky PDF pages
- - selenium-manager # auto-downloads and manages the matching ChromeDriver binary
- - pip              # still required to pull in LLM clients & dev tools
+ - python=3.13              # lock to the exact interpreter version you're targeting
 
  - pip:
    - -r requirements/requirements.txt            # core LLM & converter libraries (ollama, llama-index, docling)
