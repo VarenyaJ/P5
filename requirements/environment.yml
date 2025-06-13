@@ -1,9 +1,12 @@
 name: p5
 channels:
-  - defaults
+ - conda-forge              # priority channel for up-to-date, cross-compiled packages (biopython, selenium, and other packages we might need)
+ - defaults                 # fallback to packages from default channel
+
 dependencies:
-  - python= 3.13
-  - pip:
-      - -r requirements.txt
-      - -r requirements_scripts.txt
-      - -r requirements_test.txt
+ - python=3.13              # lock to the exact interpreter version you're targeting
+
+ - pip:
+   - -r requirements.txt            # core LLM & converter libraries (ollama, llama-index, docling)
+   - -r requirements_scripts.txt    # CLI helpers like click
+   - -r requirements_test.txt       # testing & formatting (pytest, black)
