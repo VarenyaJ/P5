@@ -1,5 +1,5 @@
 click==8.2.1
-requests=2.32.4          # HTTP client used by scripts to call PubMed/Europe PMC APIs from conda-forge or pip3
-biopython=1.85           # provides Bio.Entrez for PubMed/PMC lookups and efetch from conda-forge or pip3
-selenium=4.33.0          # optional JS-driven fallback for tricky PDF pages from conda-forge or pip3
-selenium-manager=4.33.0  # auto-downloads and manages the matching ChromeDriver binary from conda-forge or pip3
+requests==2.32.4          # HTTP client used by scripts to call PubMed/Europe PMC APIs from conda-forge or pip3
+biopython==1.85           # provides Bio.Entrez for PubMed/PMC lookups and efetch from conda-forge or pip3
+selenium==4.33.0          # optional JS-driven fallback for tricky PDF pages from conda-forge or pip3
+selenium-manager==4.33.0  # auto-downloads and manages the matching ChromeDriver binary from conda-forge or pip3
