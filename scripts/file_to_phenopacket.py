@@ -1,8 +1,9 @@
-import click
-from ollama import chat, ChatResponse
-import os
-from docling.document_converter import DocumentConverter
 import json
+import os
+
+import click
+from docling.document_converter import DocumentConverter
+from ollama import chat, ChatResponse
 
 file_types = [".pdf", ".pptx", ".docx", ".doc", ".html", ".txt"]
 
@@ -19,11 +20,7 @@ file_types = [".pdf", ".pptx", ".docx", ".doc", ".html", ".txt"]
     default=".pdf",
 )
 def file_to_phenopacket(
-    file_dir: str,
-    out_dir: str,
-    prompt: str,
-    model: str,
-    file_type: str,
+    file_dir: str, out_dir: str, prompt: str, model: str, file_type: str
 ):
     """This script converts a several file to a Phenopacket via LLM."""
     if not file_type.startswith("."):
@@ -53,12 +50,7 @@ def file_to_phenopacket(
     for file_name, text in filename_to_content.items():
         response: ChatResponse = chat(
             model=model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"{prompt} {text} [EOS]",
-                },
-            ],
+            messages=[{"role": "user", "content": f"{prompt} {text} [EOS]"}],
         )
 
         try:
