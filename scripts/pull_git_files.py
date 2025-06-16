@@ -12,19 +12,18 @@ Clones a Git repository and copies a specific file or directory from it.
 
 This command will:
 
-1. Clone the git REPO into a temporary directory. \n
-2. Move the specified FILES_TO_COPY_DIR from the cloned repo. \n
-3. Place the moved contents into the OUT_DIR. \n
-4. Clean up the temporary cloned repository. \n
+1. Clone the git REPO into a temporary directory.
+2. Move the specified FILES_TO_COPY_DIR from the cloned repo. 
+3. Place the moved contents into the OUT_DIR. 
+4. Clean up the temporary cloned repository. 
 
-\b
 OUT_DIR:            The destination directory for the copied files.
 REPO:               The URL of the git repository to clone.
 FILES_TO_COPY_DIR:  The relative path to the directory or file
                     within the repository to copy.
-\b
+
 Example:
-  python pull_git_files.py ./local_assets https://github.com/user/repo.git src/assets
+  python pull_git_files.py ./local_assets https://github.com/Call-for-Code/Project-Sample src/assets
 """
 )
 @click.argument("out_dir", type=click.Path(exists=True))
