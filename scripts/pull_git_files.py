@@ -1,9 +1,9 @@
+import shutil
 import tempfile
 from pathlib import Path
 
-from git import Repo
 import click
-import shutil
+from git import Repo
 
 
 @click.command(
@@ -35,10 +35,7 @@ def pull_git_files(out_dir: str, repo: str, files_to_copy_dir: str):
         out_dir.mkdir(exist_ok=True, parents=True)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        Repo.clone_from(
-            url=repo,
-            to_path=tmp_dir,
-        )
+        Repo.clone_from(url=repo, to_path=tmp_dir)
         shutil.move(f"{tmp_dir}/{files_to_copy_dir}", out_dir)
 
 
