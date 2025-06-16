@@ -1,12 +1,36 @@
+# -----------------------------------------------------------------------------
+# requirements/environment.yml
+#
+# Define the 'p5' Conda environment. All primary packages come from conda-forge.
+# To create:   mamba env create --yes -f requirements/environment.yml
+# To update:   mamba env update  --yes -f requirements/environment.yml
+# -----------------------------------------------------------------------------
+
 name: p5
 channels:
- - conda-forge              # priority channel for up-to-date, cross-compiled packages (biopython, selenium, and other packages we might need)
- - defaults                 # fallback to packages from default channel
+ - conda-forge
+ - defaults
 
 dependencies:
- - python=3.13              # lock to the exact interpreter version you're targeting
+ # Core interpreter
+ - python=3.13
 
- - pip:
-   - -r requirements.txt            # core LLM & converter libraries (ollama, llama-index, docling)
-   - -r requirements_scripts.txt    # CLI helpers like click
-   - -r requirements_test.txt       # testing & formatting (pytest, black)
+ # Project libraries
+ - biopython=1.85
+ - click=8.2.1
+ - requests=2.32.4
+ - selenium=4.33.0
+ - selenium-manager=4.33.0
+
+ # Testing & formatting
+ - pytest=8.4.0
+ - black=25.1.0
+ - joblib=1.4.1        # required by tests
+
+ # LLM / AI libraries
+ - ollama-python=0.5.1
+ - llama-index=0.12.4
+ - docling=2.36.1
+
+ # Ensure pip is present (no pip-only packages listed here)
+ - pip

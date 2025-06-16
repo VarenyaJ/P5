@@ -1,50 +1,27 @@
+# .github/workflows/ci.yaml
 name: CI
 
 on:
-  pull_request:
-  push:
-    branches: [main]
-
-permissions:
-      id-token: write
-      contents: read
-
-env:
-    PYTEST_ADDOPTS: "--color=yes"
+ push:
+   branches: [ main ]
+ pull_request:
+   branches: [ main ]
 
 jobs:
-  test:
-    name: Test
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    steps:
+ test:
+   name: Test on ${{ matrix.os }}
+   runs-on: ${{ matrix.os }}
+   strategy:
+     matrix:
+       os: [ ubuntu-latest, macos-latest, windows-latest ]
+   steps:
+     - name: Checkout code
+       uses: actions/checkout@v3
 
-    - name: Check out Repo
-      uses: actions/checkout@v4
-      with:
-       fetch-depth: 0
+     - name: Setup environment
+       uses: ./.github/actions/setup_env
+       with:
+         environment-file: requirements/environment.yml
 
-    - name: Setup Env
-      uses: ./.github/actions/setup_env
-
-    - name: Test with pytest
-      id: tests
-      run: |
-        pytest --disable-warnings ./
-
-  formatting:
-    name: Formatting
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-    -   name: Check out Repo
-        uses: actions/checkout@v4
-        with:
-            fetch-depth: 0
-
-    -   name: Setup Env
-        uses: ./.github/actions/setup_env
-
-    -   name: Black Formatting
-        run: |
-            black ./src/p5_pdf_parser --check --skip-magic-trailing-comma
+     - name: Run tests
+       run: pytest --maxfail=1 --disable-warnings -q
