@@ -26,12 +26,12 @@ Example:
   python pull_git_files.py ./local_assets https://github.com/Call-for-Code/Project-Sample src/assets
 """
 )
-@click.argument("out_dir", type=click.Path(exists=True))
+@click.argument("out_dir", type=click.Path(exists=False, dir_okay=True))
 @click.argument("repo", type=click.STRING)
 @click.argument("files_to_copy_dir", type=click.Path())
 def pull_git_files(out_dir: str, repo: str, files_to_copy_dir: str):
     out_dir = Path(out_dir)
-    if not out_dir.is_dir():
+    if not out_dir.exists():
         out_dir.mkdir(exist_ok=True, parents=True)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
