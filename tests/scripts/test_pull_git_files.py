@@ -19,11 +19,7 @@ def test_pull_git_files(request):
 
     result = runner.invoke(
         pull_git_files,
-        [
-            str(out_dir),
-            "https://github.com/P2GX/phenopacket2prompt",
-            "docs/cases/",
-        ],
+        [str(out_dir), "https://github.com/P2GX/phenopacket2prompt", "docs/cases/"],
     )
 
     assert (
@@ -49,14 +45,7 @@ def test_pull_git_files_mocked(mock_clone, tmp_path):
         (cloned_content_path / "dummy_file.txt").write_text("hello world")
 
     mock_clone.side_effect = mock_clone_from_effect
-    result = runner.invoke(
-        pull_git_files,
-        [
-            str(out_dir),
-            repo_url,
-            files_to_copy,
-        ],
-    )
+    result = runner.invoke(pull_git_files, [str(out_dir), repo_url, files_to_copy])
 
     assert (
         result.exit_code == 0
