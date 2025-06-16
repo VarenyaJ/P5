@@ -49,3 +49,4 @@ jobs:
         run: |
             black ./src/p5_pdf_parser --check --skip-magic-trailing-comma
             black ./scripts --check --skip-magic-trailing-comma
+            black ./tests --check --skip-magic-trailing-comma
