@@ -5,7 +5,7 @@ To pull the test phenopackets run:
 ```shell
 python scripts/pull_git_files.py "data/tmp" "https://github.com/P2GX/phenopacket2prompt" "docs/cases/"
 ```
-
+#TODO test this
 To pull the test phenopackets run:
 ```shell
 python scripts/pull_git_files.py "data/tmp" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
@@ -16,6 +16,7 @@ Then download the model of your choice via:
 ```shell
 conda activate p5
 python
+>>> import ollama
 >>> ollama.pull('<model_name>')
 >>> exit()
 ```
