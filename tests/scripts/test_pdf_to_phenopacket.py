@@ -14,7 +14,9 @@ CI = bool(os.getenv("GITHUB_ACTIONS"))
 
 @skipif(CI, reason="CI needs internet access for this test")
 def test_pdf_to_phenopacket(request):
-    asset_dir = str(pathlib.Path(request.path).parent.parent / "assets/scripts")
+    asset_dir = str(
+        pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pdfs"
+    )
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmpdirname:
         result = runner.invoke(
