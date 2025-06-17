@@ -1,4 +1,5 @@
 click==8.2.1
+GitPython==3.1.44
 requests==2.32.4          # HTTP client used by scripts to call PubMed/Europe PMC APIs from conda-forge or pip3
 biopython==1.85           # provides Bio.Entrez for PubMed/PMC lookups and efetch from conda-forge or pip3
 selenium==4.33.0          # optional JS-driven fallback for tricky PDF pages from conda-forge or pip3
