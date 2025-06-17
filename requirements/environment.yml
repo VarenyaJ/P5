@@ -10,24 +10,27 @@ channels:
 - defaults
 
 dependencies:
-# Core interpreter
+# Core interpreter & pip
 - python=3.13
+- pip
 
 # Project libraries
 - biopython=1.85
 - click=8.2.1
 - requests=2.32.4
-- selenium=4.33.0
-# - selenium-manager=4.33.0 # Removed so lock files can be built for linux
 
 # Testing & formatting
 - pytest=8.4.0
 - black=25.1.0
 
-# - pip=23.*               # pin pip itself
-# - pip:                   # then list wheels to install via pip
-#     - ollama==0.5.1
-#     - llama-index==0.12.4
-#     - docling==2.36.1
-#     - GitPython==3.1.44
+# New! Previously pip-only librarie but now ours through the magic of conda-forge
+- ollama-python=0.5.1
+- llama-index>=0.12.4
+#- docling=2.37.0
+- gitpython>=3.1.44
+
+# Everything below here will be installed via pip
+- pip:
+    - docling==2.36.1
+    - selenium==4.33.0
 #
