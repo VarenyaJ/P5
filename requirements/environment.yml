@@ -18,18 +18,16 @@ dependencies:
 - click=8.2.1
 - requests=2.32.4
 - selenium=4.33.0
-- selenium-manager=4.33.0
+# - selenium-manager=4.33.0 # Removed so lock files can be built for linux
 
 # Testing & formatting
 - pytest=8.4.0
 - black=25.1.0
-- joblib=1.4.1
 
-- pip=23.*
-
-# Allow pip installs for anything else
-- pip:
-   - ollama==0.5.1
-   - llama-index==0.12.4
-   - docling==2.36.1
-   - GitPython==3.1.44
+# - pip=23.*               # pin pip itself
+# - pip:                   # then list wheels to install via pip
+#     - ollama==0.5.1
+#     - llama-index==0.12.4
+#     - docling==2.36.1
+#     - GitPython==3.1.44
+#

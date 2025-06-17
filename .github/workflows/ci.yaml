@@ -2,29 +2,56 @@
 name: CI
 
 on:
- push:
-   branches: [ main ]
- pull_request:
-   branches: [ main ]
+push:
+  branches: [ main, exp/prioritize-conda ]
+pull_request:
+  branches: [ main, exp/prioritize-conda ]
 
 jobs:
- test:
-   strategy:
-     matrix:
-       include:
-         - os: ubuntu-latest
-           lockfile: conda-linux-64.lock.yml
-         - os: macos-latest
-           lockfile: conda-osx-arm64.lock.yml
-   runs-on: ${{ matrix.os }}
-   steps:
-     - name: Checkout code
-       uses: actions/checkout@v3
+# 1) Build and commit lockfiles on Linux
+lockfiles:
+  runs-on: ubuntu-latest
+  if: github.event_name == 'workflow_dispatch'
+  steps:
+    - uses: actions/checkout@v4
+    - name: Install mamba & conda-lock
+      run: |
+        conda install --yes -n base -c conda-forge mamba conda-lock
 
-     - name: Setup environment
-       uses: ./.github/actions/setup_env
-       with:
-         environment-file: ${{ matrix.lockfile }}
+    - name: Generate lockfiles
+      run: |
+        conda-lock lock \
+          -f requirements/environment.yml \
+          --platform linux-64 \
+          --platform osx-64 \
+          --platform osx-arm64
 
-     - name: Run tests
-       run: pytest --maxfail=1 --disable-warnings -q
+    - name: Commit lockfiles
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        file_pattern: |
+          conda-*.lock.yml
+        commit_message: "chore: update conda lockfiles"
+
+# 2) Test on each platform using the pre-generated lockfiles
+test:
+  needs: [lockfiles]
+  strategy:
+    matrix:
+      include:
+        - os: ubuntu-latest
+          lockfile: conda-linux-64.lock.yml
+        - os: macos-latest
+          lockfile: conda-osx-arm64.lock.yml
+  runs-on: ${{ matrix.os }}
+
+  steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup & install all deps
+      uses: ./.github/actions/setup_env
+      with:
+        environment-file: ${{ matrix.lockfile }}
+
+    - name: Run tests
+      run: pytest --maxfail=1 --disable-warnings -q

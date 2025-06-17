@@ -1,29 +1,35 @@
 # .github/actions/setup_env/action.yaml
 name: "setup_env"
-description: "Create and activate the Conda environment via mamba"
+description: "Install Miniconda, create the p5 env via Mamba, then pip-install extra wheels"
 inputs:
- environment-file:
-   description: "Path to the .yml or .lock.yml file"
-   required: true
-   default: "requirements/environment.yml"
+environment-file:
+  description: "Path to .yml or .lock.yml file"
+  required: true
+
 runs:
- using: "composite"
- steps:
-   - name: Install Miniconda
-     uses: goanpeca/setup-miniconda@v1
-     with:
-       python-version: "3.13"
-       auto-activate-base: false
+using: "composite"
+steps:
+  - name: Install Miniconda
+    uses: goanpeca/setup-miniconda@v1
+    with:
+      python-version: "3.13"
+      auto-activate-base: false
 
-   - name: Install Mamba
-     run: |
-       conda install --yes mamba -n base -c conda-forge
+  - name: Install Mamba & Conda-lock
+    run: |
+      conda install --yes -n base -c conda-forge mamba conda-lock
 
-   - name: Create environment
-     run: |
-       mamba env create --yes --file "${{ inputs.environment-file }}" -n p5
+  - name: Create Conda environment
+    run: |
+      mamba env create --yes \
+        --file "${{ inputs.environment-file }}" \
+        -n p5
 
-   - name: Persist environment
-     run: |
-       echo "$HOME/miniconda3/envs/p5/bin" >> $GITHUB_PATH
-       echo "CONDA_PREFIX=$HOME/miniconda3/envs/p5" >> $GITHUB_ENV
+  - name: Add p5 env to PATH
+    run: |
+      echo "$HOME/miniconda3/envs/p5/bin" >> $GITHUB_PATH
+      echo "CONDA_PREFIX=$HOME/miniconda3/envs/p5" >> $GITHUB_ENV
+
+  - name: Pip-install extra wheels
+    run: |
+      pip install --requirement requirements/requirements.txt
