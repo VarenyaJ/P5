@@ -1,9 +1,7 @@
-# -----------------------------------------------------------------------------
 # requirements/environment.yml
-#
+# -----------------------------------------------------------------------------
 # Define the 'p5' Conda environment. All primary packages come from conda-forge.
-# To create:   mamba env create --yes -f requirements/environment.yml
-# To update:   mamba env update  --yes -f requirements/environment.yml
+# To create/update without lockfiles: mamba env create/update --file requirements/environment.yml
 # -----------------------------------------------------------------------------
 
 name: p5
@@ -25,12 +23,12 @@ dependencies:
  # Testing & formatting
  - pytest=8.4.0
  - black=25.1.0
- - joblib=1.4.1        # required by tests
+ - joblib=1.4.1
 
  # LLM / AI libraries
  - ollama-python=0.5.1
  - llama-index=0.12.4
  - docling=2.36.1
 
- # Ensure pip is present (no pip-only packages listed here)
+ # Allow pip installs for anything else
  - pip

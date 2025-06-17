@@ -3,7 +3,7 @@ name: "setup_env"
 description: "Create and activate the Conda environment via mamba"
 inputs:
  environment-file:
-   description: "Path to the environment.yml file"
+   description: "Path to the .yml or .lock.yml file"
    required: true
    default: "requirements/environment.yml"
 runs:
@@ -16,17 +16,14 @@ runs:
        auto-activate-base: false
 
    - name: Install Mamba
-     shell: bash
      run: |
        conda install --yes mamba -n base -c conda-forge
 
    - name: Create environment
-     shell: bash
      run: |
-       mamba env create --yes -f ${{ inputs.environment-file }} -n p5
+       mamba env create --yes --file "${{ inputs.environment-file }}" -n p5
 
    - name: Persist environment
-     shell: bash
      run: |
        echo "$HOME/miniconda3/envs/p5/bin" >> $GITHUB_PATH
        echo "CONDA_PREFIX=$HOME/miniconda3/envs/p5" >> $GITHUB_ENV
