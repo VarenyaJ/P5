@@ -6,29 +6,30 @@
 
 name: p5
 channels:
- - conda-forge
- - defaults
+- conda-forge
+- defaults
 
 dependencies:
- # Core interpreter
- - python=3.13
+# Core interpreter
+- python=3.13
 
- # Project libraries
- - biopython=1.85
- - click=8.2.1
- - requests=2.32.4
- - selenium=4.33.0
- - selenium-manager=4.33.0
+# Project libraries
+- biopython=1.85
+- click=8.2.1
+- requests=2.32.4
+- selenium=4.33.0
+- selenium-manager=4.33.0
 
- # Testing & formatting
- - pytest=8.4.0
- - black=25.1.0
- - joblib=1.4.1
+# Testing & formatting
+- pytest=8.4.0
+- black=25.1.0
+- joblib=1.4.1
 
- # LLM / AI libraries
- - ollama-python=0.5.1
- - llama-index=0.12.4
- - docling=2.36.1
+- pip=23.*
 
- # Allow pip installs for anything else
- - pip
+# Allow pip installs for anything else
+- pip:
+   - ollama==0.5.1
+   - llama-index==0.12.4
+   - docling==2.36.1
+   - GitPython==3.1.44
