@@ -7,7 +7,7 @@ from typing import DefaultDict
 import click
 import pandas as pd
 
-regex = r"PMID_\d{1,8}"
+from scripts.utils import pmid_regex
 
 
 def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, list]:
@@ -17,7 +17,7 @@ def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, l
             return pmid_by_file_dir
 
         for file_name in file_names:
-            matches = re.findall(regex, file_name)
+            matches = re.findall(pmid_regex, file_name)
 
             if len(matches) != 1:
                 click.secho(
