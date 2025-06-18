@@ -10,11 +10,12 @@ from scripts.utils import find_pmids
 
 @pytest.fixture()
 def pmids():
-    return {"7803799", "8800795"}
+    return {"PMID_7803799", "PMID_8800795"}
 
 
 @pytest.mark.parametrize(
-    "recursive, expected_pmids", [(True, {"7803799", "8800795"}), (False, set())]
+    "recursive, expected_pmids",
+    [(True, {"PMID_7803799", "PMID_8800795"}), (False, set())],
 )
 def test_find_pmids(recursive: bool, expected_pmids: set[str], pmids: set[str]):
     packet_dirs = [

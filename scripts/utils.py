@@ -52,7 +52,7 @@ def find_pmids(
             continue
 
         for filename in file_names:
-            matches = re.findall(r"\d{7}", filename)
+            matches = re.findall(r"PMID_\d{1,8}", filename)
 
             if len(matches) != 1:
                 click.secho(
