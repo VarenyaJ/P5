@@ -129,12 +129,16 @@ def PMID_downloader(pmid_file_path: str, pdf_out_dir: str):
     with tqdm(total=no_of_pmids) as progress_bar:
         for pmid in pmids:
             progress_bar.set_description(f"Processing PMID_{pmid}")
-            progress_bar.update(1)
             pmcid = _get_pmcid(pmid)
             if pmcid is None:
                 click.secho(message=f"No PMCID found for PMID_{pmid}.", fg="yellow")
+                progress_bar.update(1)
                 continue
             download_pdf(pmcid, pmid, pdf_out_dir)
+            progress_bar.update(1)
+        progress_bar.set_description(
+            f"Processing of {str(no_of_pmids)} PMIDs complete."
+        )
 
 
 if __name__ == "__main__":
