@@ -10,7 +10,7 @@ import pandas as pd
 regex = r"\d{7}"
 
 
-def _get_pmid_by_filename(directory: str, recursive: bool) -> defaultdict[str, list]:
+def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, list]:
     pmid_by_file_dir = DefaultDict(list)
     for file_path, _, file_names in walk(directory):
         if len(file_names) == 0 and recursive is False:
@@ -71,8 +71,8 @@ def create_phenopacket_dataset(
     recursive_input_dir: bool,
     recursive_ground_truth_dir: bool,
 ):
-    input_data = _get_pmid_by_filename(input_data_dir, recursive_input_dir)
-    ground_truth_data = _get_pmid_by_filename(
+    input_data = _get_pmid_by_file_dir(input_data_dir, recursive_input_dir)
+    ground_truth_data = _get_pmid_by_file_dir(
         ground_truth_files_dir, recursive_ground_truth_dir
     )
 
