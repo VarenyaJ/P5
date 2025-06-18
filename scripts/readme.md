@@ -1,14 +1,19 @@
 #### Pull Test data
 To get the test data run the following scripts in order:
 
-To pull the test phenopackets run:
+To pull the summaries of PubMed cases run:
 ```shell
-python scripts/pull_git_files.py "data/tmp" "https://github.com/P2GX/phenopacket2prompt" "docs/cases/"
+python pull_git_files.py "data/tmp" "https://github.com/P2GX/phenopacket2prompt" "docs/cases/"
 ```
-#TODO test this
+
 To pull the test phenopackets run:
 ```shell
-python scripts/pull_git_files.py "data/tmp" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
+python pull_git_files.py "data/tmp" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
+```
+
+To filter the phenopackets by the cases use:
+```shell
+python filter_phenopackets.py "data/tmp/cases" "data/tmp/notebooks" "data/tmp/filtered_packets" 
 ```
 #### PDF to Phenopacket Script
 Make sure ollama is installed on your machine and your env. Start the server.
