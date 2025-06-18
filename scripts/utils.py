@@ -17,12 +17,6 @@ def find_pmids(
 ) -> set[str]:
     """Finds PubMed IDs (PMIDs) in filenames within a given directory.
 
-    This function searches for 7-digit numbers in the filenames present in the
-    specified directory. If `recursive` is True, it will traverse subdirectories
-    as well. It expects each filename to contain at most one 7-digit number
-    (assumed to be a PMID). A warning is issued if multiple 7-digit numbers are
-    found in a single filename.
-
     Parameters
     ----------
     directory : str or pathlib.Path
@@ -34,13 +28,13 @@ def find_pmids(
     Returns
     -------
     set of str
-        A set of unique 7-digit strings found in the filenames, representing
+        A set of unique PMIDs found in the filenames, representing
         the PMIDs.
 
     Warnings
     --------
     UserWarning
-        If a filename contains more than one 7-digit number, a warning is
+        If a filename contains more than one PMID, a warning is
         printed.
     """
     pmids = set()
