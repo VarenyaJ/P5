@@ -9,8 +9,8 @@ from scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
 def test_filter_phenopackets():
     random_file_dirs = ["AAGAB", "ACTB", "ERF", "FBLX4", "POT1"]
-    expected_pmids = [7803799, 8800795]
-    additional_pmids = ["0000000", "1111111", "NO_PUBMED_ID"]
+    expected_pmids = ["PMID_7803799", "PMID_8800795"]
+    additional_pmids = ["PMID_0000000", "PMID_1111111", "NO_PUBMED_ID"]
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         inputs_dir = pathlib.Path(f"{tmp_dir}/inputs")

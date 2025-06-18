@@ -7,7 +7,7 @@ from typing import DefaultDict
 import click
 import pandas as pd
 
-regex = r"\d{7}"
+regex = r"PMID_\d{1,8}"
 
 
 def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, list]:
