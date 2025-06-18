@@ -13,8 +13,9 @@ python pull_git_files.py "data/tmp" "https://github.com/monarch-initiative/pheno
 
 To filter the phenopackets by the cases use:
 ```shell
-python filter_phenopackets.py "data/tmp/cases" "data/tmp/notebooks" "data/tmp/filtered_packets" 
+python create_phenopacket_dataset.py "data/tmp/cases" "data/tmp/notebooks" "data/tmp/phenopacket_dataset.csv" --recursive_ground_truth_dir True
 ```
+
 #### PDF to Phenopacket Script
 Make sure ollama is installed on your machine and your env. Start the server.
 Then download the model of your choice via:

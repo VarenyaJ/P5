@@ -4,7 +4,7 @@ import tempfile
 import pandas as pd
 from click.testing import CliRunner
 
-from scripts.filter_phenopackets import create_phenopacket_dataset
+from scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
 
 def test_filter_phenopackets():
