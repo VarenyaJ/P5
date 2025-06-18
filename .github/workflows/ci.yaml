@@ -1,53 +1,55 @@
 name: CI
 
 on:
- pull_request:
-   branches: [main, exp/prioritize-conda]
- push:
-   branches: [main, exp/prioritize-conda]
+  pull_request:
+  push:
+    branches: [main]
 
 permissions:
- id-token: write
- contents: read
+      id-token: write
+      contents: read
 
 env:
- PYTEST_ADDOPTS: "--color=yes"
+    PYTEST_ADDOPTS: "--color=yes"
 
 jobs:
- test:
-   name: Test
-   timeout-minutes: 15
-   runs-on: ubuntu-latest
-   steps:
-     - name: Check out Repo
-       uses: actions/checkout@v4
-       with:
-         fetch-depth: 0
+  test:
+    name: Test
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
 
-     - name: Setup Env
-       uses: ./.github/actions/setup_env
+    - name: Check out Repo
+      uses: actions/checkout@v4
+      with:
+       fetch-depth: 0
 
-     - name: Run Tests
-       run: conda run -n p5 pytest --disable-warnings ./
+    - name: Setup Env
+      uses: ./.github/actions/setup_env
 
- formatting:
-   name: Formatting
-   runs-on: ubuntu-latest
-   timeout-minutes: 15
-   steps:
-     - name: Check out Repo
-       uses: actions/checkout@v4
-       with:
-         fetch-depth: 0
+    - name: Test with pytest
+      id: tests
+      run: |
+        pytest --disable-warnings ./
 
-     - name: Setup Env
-       uses: ./.github/actions/setup_env
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    -   name: Check out Repo
+        uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
 
-     - name: Black Formatting - src
-       run: conda run -n p5 black ./src/p5_pdf_parser --check --skip-magic-trailing-comma
+    -   name: Setup Env
+        uses: ./.github/actions/setup_env
 
-     - name: Black Formatting - scripts
-       run: conda run -n p5 black ./scripts --check --skip-magic-trailing-comma
+    -   name: Black Formatting - src
+        run: black ./src/p5_pdf_parser --check --skip-magic-trailing-comma
 
-     - name: Black Formatting - tests
-       run: conda run -n p5 black ./tests --check --skip-magic-trailing-comma
+    - name: Black Formatting - scripts
+      run:  black ./scripts --check --skip-magic-trailing-comma
+
+    - name: Black Formatting - tests
+      run:  black ./tests --check --skip-magic-trailing-comma
