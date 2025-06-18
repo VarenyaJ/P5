@@ -40,7 +40,7 @@ pip cache purge
 
 # 2. Remove old env
 conda deactivate
-conda env remove -n p5 -y  || true
+conda env remove -n p5 -y
 
 # 3. Create new env
 mamba env create -f requirements/environment.yml -n p5
