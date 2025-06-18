@@ -34,7 +34,7 @@ def test_find_pmids(recursive: bool, expected_pmids: set[str], pmids: set[str]):
         assert expected_pmids == found_pmids
 
 
-def test_find_pmids_recursive(pmids: set[str]):
+def test_find_pmids_no_files_early_return(pmids: set[str]):
     with tempfile.TemporaryDirectory() as tmp_dir:
         for i, pmid in enumerate(pmids):
             save_dir = pathlib.Path(f"{tmp_dir}/{pmid}.json")
