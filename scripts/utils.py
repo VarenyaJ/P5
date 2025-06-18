@@ -63,7 +63,7 @@ def find_pmids(
                 continue
 
             pmids.add(matches[0])
-    if recursive is False:
-        return pmids
+        if recursive is False:
+            return pmids
 
     return pmids
