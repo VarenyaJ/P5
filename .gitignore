@@ -203,4 +203,5 @@ cython_debug/
 /dataSources/
 /dataSources.local.xml
 
-/data/tmp/
+/data/tmp/.vscode/
+.vscode/*

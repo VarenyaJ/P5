@@ -1,9 +1,37 @@
+# requirements/environment.yml
+# -----------------------------------------------------------------------------
+# Define the 'p5' Conda environment. All primary packages come from conda-forge.
+# To create/update without lockfiles: mamba env create/update --file requirements/environment.yml
+# -----------------------------------------------------------------------------
+
 name: p5
 channels:
-  - defaults
+- conda-forge
+- defaults
+
 dependencies:
-  - python= 3.13
-  - pip:
-      - -r requirements.txt
-      - -r requirements_scripts.txt
-      - -r requirements_test.txt
+# Core interpreter & pip
+- python=3.13
+- pip
+
+# Project libraries
+- biopython=1.85
+- click=8.2.1
+- requests=2.32.4
+
+# Testing & formatting
+- pytest=8.4.0
+- black=25.1.0
+
+# New! Previously pip-only librarie but now ours through the magic of conda-forge
+- ollama-python=0.5.1
+- llama-index>=0.12.4
+#- docling=2.37.0
+- gitpython>=3.1.44
+
+# Everything below here will be installed via pip
+- pip:
+    - docling==2.36.1
+    - selenium==4.33.0
+    - jsoncomparison>=1.1.0
+#jsoncomparison
