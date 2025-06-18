@@ -14,9 +14,9 @@ def pmids():
 
 
 @pytest.mark.parametrize(
-    "recursive, expected_pmids", [(True, ["7803799", "8800795"]), (False, [])]
+    "recursive, expected_pmids", [(True, {"7803799", "8800795"}), (False, set())]
 )
-def test_find_pmids(recursive: bool, expected_pmids: list[str], pmids: set[str]):
+def test_find_pmids(recursive: bool, expected_pmids: set[str], pmids: set[str]):
     packet_dirs = [
         "".join(random.choice(string.ascii_letters) for _ in range(5)) for _ in pmids
     ]
@@ -30,7 +30,7 @@ def test_find_pmids(recursive: bool, expected_pmids: list[str], pmids: set[str])
 
         found_pmids = find_pmids(tmp_dir, recursive=recursive)
 
-        assert set(expected_pmids) == found_pmids
+        assert expected_pmids == found_pmids
 
 
 def test_find_pmids_recursive(pmids: set[str]):

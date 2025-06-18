@@ -48,7 +48,7 @@ def find_pmids(
     for _, _, file_names in walk(directory):
         if len(file_names) == 0:
             if recursive is False:
-                return []
+                return pmids
             continue
 
         for filename in file_names:
