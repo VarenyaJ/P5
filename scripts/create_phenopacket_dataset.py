@@ -19,12 +19,14 @@ def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, l
         for file_name in file_names:
             matches = re.findall(pmid_regex, file_name)
 
-            if len(matches) != 1:
+            if len(matches) > 1:
                 click.secho(
                     f"Warning: Found more than one PMID ({matches}) in {file_path}. ",
                     fg="yellow",
                     bold=True,
                 )
+                continue
+            elif len(matches) == 0:
                 continue
 
             pmid_by_file_dir[matches[0]].append(
@@ -62,8 +64,8 @@ def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, l
 @click.argument("input_data_dir", type=click.Path(exists=True))
 @click.argument("ground_truth_files_dir", type=click.Path(exists=True))
 @click.argument("dataset_out_dir", type=click.Path())
-@click.option("--recursive_input_dir", type=click.BOOL, default=False)
-@click.option("--recursive_ground_truth_dir", type=click.BOOL, default=False)
+@click.option("--recursive_input_dir", type=click.BOOL)
+@click.option("--recursive_ground_truth_dir", type=click.BOOL)
 def create_phenopacket_dataset(
     input_data_dir: str,
     ground_truth_files_dir: str,
@@ -86,3 +88,7 @@ def create_phenopacket_dataset(
     df = df.explode(column="truth")
     df = df.explode(column="input")
     df.to_csv(dataset_out_dir, index=False)
+
+
+if __name__ == "__main__":
+    create_phenopacket_dataset()

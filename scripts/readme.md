@@ -13,7 +13,7 @@ python pull_git_files.py "data/tmp" "https://github.com/monarch-initiative/pheno
 
 To filter the phenopackets by the cases use:
 ```shell
-python create_phenopacket_dataset.py "data/tmp/cases" "data/tmp/notebooks" "data/tmp/phenopacket_dataset.csv" --recursive_ground_truth_dir True
+python create_phenopacket_dataset.py "./data/tmp/cases" "./data/tmp/notebooks" "./data/tmp/phenopacket_dataset.csv" --recursive_ground_truth_dir True
 ```
 
 #### PDF to Phenopacket Script
