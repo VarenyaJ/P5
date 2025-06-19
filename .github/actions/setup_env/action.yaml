@@ -4,31 +4,24 @@ description: 'Sets up and caches a Python env using Conda. Falls back to pip onl
 runs:
  using: composite
  steps:
-   - name: Set up Python 3.13
-     uses: actions/setup-python@v5.6.0
+   - name: Set up Miniconda
+     uses: conda-incubator/setup-miniconda@v2
      with:
        python-version: "3.13"
+       auto-activate-base: false
 
-   - name: Cache Env
-     uses: actions/cache@v4.2.3
-     id: env-cache
-     with:
-       path: ${{ env.pythonLocation }}
-       key: ${{ env.pythonLocation }}-${{ hashFiles('requirements/environment.yml') }}
-
-   - name: Create Conda Environment from environment.yml
-     if: ${{ steps.env-cache.outputs.cache-hit != 'true' }}
-     run: |
-       conda env list | grep p5 || conda env create -f requirements/environment.yml
+   - name: Create/Update Conda Env
      shell: bash
-
-   - name: Install extra pip requirements (if files exist)
      run: |
-       set -e
+       if conda env list | grep -q '^p5[[:space:]]'; then
+         conda env update --name p5 --file requirements/environment.yml --prune
+       else
+         conda env create --name p5 --file requirements/environment.yml
+       fi
+
+   - name: Install extra pip requirements
+     shell: bash
+     run: |
        for file in requirements/requirements*.txt; do
-         if [[ -f "$file" ]]; then
-           echo "Installing from $file..."
-           conda run -n p5 pip install -r "$file"
-         fi
+         [[ -f "$file" ]] && conda run -n p5 pip install -r "$file"
        done
-     shell: bash
