@@ -11,6 +11,7 @@ import tempfile
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
+
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 def test_PMID_downloader(request):
 
