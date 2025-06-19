@@ -1,19 +1,18 @@
 import json
 import os
+import pathlib
+import tempfile
 from unittest import mock
 
 import pytest
 from click.testing import CliRunner
-from joblib.testing import skipif
 
 from scripts.file_to_phenopacket import file_to_phenopacket
-import pathlib
-import tempfile
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
 
-@skipif(CI, reason="CI needs internet access for this test")
+@pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 @pytest.mark.parametrize("file_type", [".pdf", ".txt"])
 def test_file_to_phenopacket(request, file_type):
     asset_dir = str(

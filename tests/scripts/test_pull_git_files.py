@@ -4,15 +4,15 @@ import shutil
 from os import listdir
 from unittest import mock
 
+import pytest
 from click.testing import CliRunner
-from joblib.testing import skipif
 
 from scripts.pull_git_files import pull_git_files
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
 
-@skipif(CI, reason="CI needs internet access for this test")
+@pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 def test_pull_git_files(request):
     out_dir = pathlib.Path(request.path).parent.parent.parent / "data/tmp/test"
     runner = CliRunner()
