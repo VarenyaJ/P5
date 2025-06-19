@@ -1,9 +1,9 @@
 import os
 from unittest import mock
 
+import pytest
 from click.testing import CliRunner
 from docling.document_converter import DocumentConverter
-from joblib.testing import skipif
 
 from scripts.PMID_downloader import PMID_downloader
 import pathlib
@@ -11,8 +11,7 @@ import tempfile
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
-
-@skipif(CI, reason="CI needs internet access for this test")
+@pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 def test_PMID_downloader(request):
 
     # The first PMID of this dummy_pmids.txt file should give a PDF
