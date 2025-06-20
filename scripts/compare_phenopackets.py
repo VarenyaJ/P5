@@ -1,137 +1,203 @@
-"""
-compare_phenopackets.py
+from typing import Any, List, Tuple, Union
 
-Provides `compare_jsons`, which compares two JSON-like structures
-(e.g., generated vs. ground-truth phenopackets) and computes:
-   - TP: True Positives (correctly extracted fields)
-   - FP: False Positives (hallucinated or extra fields)
-   - FN: False Negatives (missed or wrong fields)
-
-We ignore True Negatives because in free-form information extraction
-the "not-extracted" space is unbounded.
-
-Dependencies:
-   pip install jsoncomparison
-
-Usage:
-   from compare_phenopackets import compare_jsons
-   metrics = compare_jsons(true_json_dict, generated_json_dict_or_str)
-   print(metrics)  # -> {"TP": ..., "FP": ..., "FN": ...}
-"""
-
-from typing import Any, Dict, Union
 from jsoncomparison import Compare, NO_DIFF
 
-def compare_jsons(
-   true_json: Any,
-   gen_json: Union[Any, str]
-) -> Dict[str, int]:
+
+def _count_leaf_fields(reference_json: Any) -> int:
    """
-   Compare generated JSON (`gen_json`) to ground-truth JSON (`true_json`).
+   Count the number of leaf fields in a JSON-like structure.
 
-   Returns:
-       A dict with keys:
-         - "TP": number of true positives
-         - "FP": number of false positives
-         - "FN": number of false negatives
+   A "leaf field" is any non-dict, non-list value.
+   Conventions:
+     - Empty dict `{}` counts as 1 leaf (field with no children).
+     - Empty list `[]` counts as 0 leaves.
 
-   Behavior:
-     1. Count all leaf fields in `true_json` to get `total_expected`.
-     2. If `gen_json` is not a dict or list, treat as entirely invalid:
-        FP = FN = total_expected, TP = 0.
-     3. Recursively walk both JSONs to count **extra keys** in `gen_json`
-        that aren't in `true_json`. Each extra key -> +1 FP.
-     4. Use `jsoncomparison.Compare().check()` to compute a diff tree.
-     5. Walk that diff tree to spot:
-        - Wrong or mismatched values -> +1 FN, +1 FP
-        - Missing fields -> +1 FN
-        - List-length mismatches -> +N FN or +N FP
-     6. TP = total_expected - FN (never negative).
+   Parameters
+   ----------
+   reference_json : Any
+       A dict, list, or scalar value.
+
+   Returns
+   -------
+   int
+       Total number of leaf fields.
    """
+   if isinstance(reference_json, dict):
+       total = sum(_count_leaf_fields(v) for v in reference_json.values())
+       return total or 1
+   if isinstance(reference_json, list):
+       return sum(_count_leaf_fields(item) for item in reference_json)
+   return 1
 
-   def count_fields(obj: Any) -> int:
-       """Recursively count all "leaf" fields in a JSON-like object."""
-       if isinstance(obj, dict):
-           # Sum over values; if empty dict, count as one field
-           return sum(count_fields(v) for v in obj.values()) or 1
-       if isinstance(obj, list):
-           return sum(count_fields(v) for v in obj)
-       # Any non-dict/list is one leaf field
-       return 1
 
-   total_expected = count_fields(true_json)
+def _count_extra_keys(
+   reference_json: Union[dict, List[Any]],
+   experimental_intake_json: Union[dict, List[Any]]
+) -> int:
+   """
+   Count keys present in experimental_intake_json but absent from reference_json.
 
-   # 2. Handle non-JSON output
-   if not isinstance(gen_json, (dict, list)):
-       return {"TP": 0, "FP": total_expected, "FN": total_expected}
+   Each extra key at any nesting level is a False Positive.
 
-   # 3. Count extra dict keys at all nesting levels
-   def count_extra_keys(t: Any, g: Any) -> int:
-       """
-       Recursively count keys present in `g` but not in `t`.
-       Works for nested dicts and lists-of-dicts.
-       """
-       extra = 0
-       if isinstance(t, dict) and isinstance(g, dict):
-           # Extra at this level:
-           extra_keys = set(g.keys()) - set(t.keys())
-           extra += len(extra_keys)
-           # Recurse on shared keys:
-           for key in set(t.keys()) & set(g.keys()):
-               extra += count_extra_keys(t[key], g[key])
-       elif isinstance(t, list) and isinstance(g, list):
-           # Zip-pairwise up to shortest list:
-           for item_t, item_g in zip(t, g):
-               extra += count_extra_keys(item_t, item_g)
-       return extra
+   Parameters
+   ----------
+   reference_json : dict or list
+   experimental_intake_json : dict or list
 
-   extra_fp = count_extra_keys(true_json, gen_json)
+   Returns
+   -------
+   int
+       Number of extra dict keys.
+   """
+   extra = 0
+   if isinstance(reference_json, dict) and isinstance(experimental_intake_json, dict):
+       missing = set(experimental_intake_json) - set(reference_json)
+       extra += len(missing)
+       for key in set(reference_json) & set(experimental_intake_json):
+           extra += _count_extra_keys(
+               reference_json[key], experimental_intake_json[key]
+           )
+   elif isinstance(reference_json, list) and isinstance(experimental_intake_json, list):
+       for ref_item, cand_item in zip(reference_json, experimental_intake_json):
+           extra += _count_extra_keys(ref_item, cand_item)
+   return extra
 
-   # 4. Compute structural diff
-   diff = Compare().check(true_json, gen_json)
-   # 5a. Perfect match aside from extra keys
-   if diff is NO_DIFF:
-       return {
-           "TP": total_expected,
-           "FP": extra_fp,
-           "FN": 0
-       }
 
-   # 5b. Walk diff tree for mismatches/missing/list errors
-   fp = fn = 0
+def _tally_diff_fp_fn(diff_tree: Any) -> Tuple[int, int]:
+   """
+   Walk a jsoncomparison diff tree to count FPs and FNs.
 
-   def walk(node: Any):
-       nonlocal fp, fn
+   * If diff_tree is a dict whose "_message" is "Lengths not equal", treat it
+     as a single list-length mismatch (stop immediately).
+   * If diff_tree is a bare tuple of two ints, same deal.
+   * Otherwise, recurse into dicts:
+       - "Values not equal" or "Types not equal" => +1 FP & +1 FN
+       - "Key does not exists" or "Value not found" => +1 FN
+       - "Lengths not equal" => +N FP or +N FN (stop that branch)
+
+   Parameters
+   ----------
+   diff_tree : Any
+       The output of Compare().check(...), either NO_DIFF, a dict tree,
+       or an (expected, received) tuple.
+
+   Returns
+   -------
+   (fp_count, fn_count)
+   """
+   # 1) Root-dict length mismatch short-circuit:
+   if isinstance(diff_tree, dict):
+       root_msg = diff_tree.get("_message", "")
+       if "Lengths not equal" in root_msg:
+           exp, rec = diff_tree.get("_expected", 0), diff_tree.get("_received", 0)
+           if rec > exp:
+               return rec - exp, 0
+           if exp > rec:
+               return 0, exp - rec
+           return 0, 0
+
+   # 2) Tuple form length mismatch:
+   if isinstance(diff_tree, tuple) and len(diff_tree) == 2 and all(isinstance(x, int) for x in diff_tree):
+       exp, rec = diff_tree
+       if rec > exp:
+           return rec - exp, 0
+       if exp > rec:
+           return 0, exp - rec
+       return 0, 0
+
+   # 3) Perfect match:
+   if diff_tree is NO_DIFF:
+       return 0, 0
+
+   # 4) Recurse into diff dicts:
+   def _recurse(node: Any) -> Tuple[int, int]:
+       fp_local = fn_local = 0
        if not isinstance(node, dict):
-           return
+           return 0, 0
 
        msg = node.get("_message", "")
-       # Wrong or type-mismatched value:
        if "Values not equal" in msg or "Types not equal" in msg:
-           fn += 1
-           fp += 1
-       # Expected field missing in generated JSON:
+           fp_local += 1
+           fn_local += 1
        elif "Key does not exists" in msg or "Value not found" in msg:
-           fn += 1
-       # List-length mismatch:
+           fn_local += 1
        elif "Lengths not equal" in msg:
-           exp = node.get("_expected", 0)
-           rec = node.get("_received", 0)
-           if exp > rec:
-               fn += exp - rec
-           elif rec > exp:
-               fp += rec - exp
+           exp, rec = node.get("_expected", 0), node.get("_received", 0)
+           if rec > exp:
+               fp_local += rec - exp
+           elif exp > rec:
+               fn_local += exp - rec
+           return fp_local, fn_local  # stop this branch
 
-       # Recurse all children:
-       for v in node.values():
-           walk(v)
+       for child in node.values():
+           cfp, cfn = _recurse(child)
+           fp_local += cfp
+           fn_local += cfn
 
-   walk(diff)
+       return fp_local, fn_local
 
-   # 5c. Add extra-key false positives
-   fp += extra_fp
+   return _recurse(diff_tree)
 
-   # 6. Compute true positives
+
+def compare_jsons(
+   reference_json: Union[dict, List[Any]],
+   experimental_intake_json: Union[dict, List[Any], str]
+) -> dict[str, int]:
+   """
+   Compare two JSON-like structures and compute TP, FP, FN.
+
+   Parameters
+   ----------
+   reference_json : dict or list
+       The ground-truth phenopacket (or any JSON).
+   experimental_intake_json : dict, list, or str
+       The JSON under test, or anything else (treated as totally invalid).
+
+   Returns
+   -------
+   dict[str, int]
+       {"TP": int, "FP": int, "FN": int}
+   """
+   total_expected = _count_leaf_fields(reference_json)
+
+   # Non-JSON input => all FN+FP
+   if not isinstance(experimental_intake_json, (dict, list)):
+       return {"TP": 0, "FP": total_expected, "FN": total_expected}
+
+   extra_fp = _count_extra_keys(reference_json, experimental_intake_json)
+
+   try:
+       diff_tree = Compare().check(reference_json, experimental_intake_json)
+   except Exception:
+       # If the library blows up, treat as completely wrong
+       return {"TP": 0, "FP": total_expected, "FN": total_expected}
+
+   diff_fp, diff_fn = _tally_diff_fp_fn(diff_tree)
+   fp = extra_fp + diff_fp
+   fn = diff_fn
    tp = max(total_expected - fn, 0)
 
    return {"TP": tp, "FP": fp, "FN": fn}
+
+
+def compute_prf(metrics: dict[str, int]) -> dict[str, float]:
+   """
+   Compute precision, recall, and F1 score from TP/FP/FN.
+
+   Parameters
+   ----------
+   metrics : dict[str, int]
+       Must contain "TP", "FP", and "FN".
+
+   Returns
+   -------
+   dict[str, float]
+       {"precision": float, "recall": float, "f1": float}
+   """
+   tp, fp, fn = metrics.get("TP", 0), metrics.get("FP", 0), metrics.get("FN", 0)
+
+   precision = tp / (tp + fp) if (tp + fp) else 0.0
+   recall    = tp / (tp + fn) if (tp + fn) else 0.0
+   f1        = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
+
+   return {"precision": precision, "recall": recall, "f1": f1}
