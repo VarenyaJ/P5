@@ -9,7 +9,10 @@ from scripts.PMID_downloader import pmid_downloader
 import pathlib
 import tempfile
 
+from scripts.utils import pkl_to_set
+
 CI = bool(os.getenv("GITHUB_ACTIONS"))
+
 
 @pytest.fixture()
 def pdf_bytes():
@@ -34,20 +37,17 @@ def pdf_bytes():
     )
 
 
-# FIX THIS CODE!
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 def test_pmid_downloader(request):
     """
-    This tests that everything works when we pass in a file containing two PMIDS.
-    The first PMID corresponds to a PMCID and so will generate a PDF.
-    The second PMID does not correspond to a PMCID and so should not correspond to a PDF.
-    They are contained in the file "assets/scripts/dummy_pmids.txt".
+    This tests that everything works when we pass in a .pkl file containing two PMIDS.
+    One of the PMIDs (which is PMID_8755636) corresponds to a PMCID and so will generate a PDF.
+    The other PMID does not correspond to a PMCID and so should not correspond to a PDF.
+    They are contained in the file "assets/scripts/dummy_pmids.pkl".
     """
     dummy_pmids_file_path = str(
-        pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pmids.txt"
+        pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pmids.pkl"
     )
-    with open(dummy_pmids_file_path, "r") as file:
-        dummy_pmids: list[str] = file.readlines()
 
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -57,11 +57,11 @@ def test_pmid_downloader(request):
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        pdf_file_names = [f for f in os.listdir(tmpdirname)]
-        pdf_file_names_no_file_type = [f.split(".")[0] for f in os.listdir(tmpdirname)]
-        expected_pmids = ["8755636"]
+        pdf_file_names = {f for f in os.listdir(tmpdirname)}
+        pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(tmpdirname)}
+        expected_pmid_names = {"8755636"}
 
-        assert pdf_file_names_no_file_type == expected_pmids
+        assert pdf_file_names_no_file_type == expected_pmid_names
 
         converter = DocumentConverter()
         for pdf in pdf_file_names:
@@ -88,9 +88,9 @@ def test_PMID_downloader_with_pmcid_mocked(
     request,
 ):
     """
-    This tests that everything works when we pass in PMIDs that correspond to PMCIDs.
-    In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_with_pmcid.txt".
-    Entrez, Selenium and requests  are mocked.
+    This tests that everything works when we pass in a .pkl containing two PMIDs that correspond to PMCIDs.
+    In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_with_pmcid.pkl".
+    Entrez, Selenium and requests are mocked.
     """
 
     mock_entrez_elink.return_value = mock.MagicMock()
@@ -103,10 +103,10 @@ def test_PMID_downloader_with_pmcid_mocked(
 
     dummy_pmids_file_path = str(
         pathlib.Path(request.path).parent.parent
-        / "assets/scripts/dummy_pmids_with_pmcid.txt"
+        / "assets/scripts/dummy_pmids_with_pmcid.pkl"
     )
-    with open(dummy_pmids_file_path, "r") as file:
-        dummy_pmids: list[str] = file.readlines()
+
+    expected_pmids = pkl_to_set(dummy_pmids_file_path)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         result = runner.invoke(pmid_downloader, [dummy_pmids_file_path, tmpdirname])
@@ -115,11 +115,13 @@ def test_PMID_downloader_with_pmcid_mocked(
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        pdf_names = [f.split(".")[0] for f in os.listdir(tmpdirname)]
-        expected_pmid_names = [line.split("_")[1].rstrip() for line in dummy_pmids]
+        pdf_names = {f.split(".")[0] for f in os.listdir(tmpdirname)}
+        expected_pmid_names = {
+            pmid_name.split("_")[1].rstrip() for pmid_name in expected_pmids
+        }
 
-        assert sorted(expected_pmid_names) == sorted(
-            pdf_names
+        assert (
+            expected_pmid_names == pdf_names
         ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
 
@@ -127,8 +129,8 @@ def test_PMID_downloader_with_pmcid_mocked(
 @mock.patch("Bio.Entrez.elink")
 def test_PMID_downloader_no_pmcid_mocked(mock_entrez_elink, mock_entrez_read, request):
     """
-    This tests that everything works when we pass in PMIDs that do not correspond to PMCIDs.
-    In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_no_pmcid.txt".
+    This tests that everything works when we pass in a .pkl containing two PMIDs that do NOT correspond to PMCIDs.
+    In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_no_pmcid.pkl".
     Entrez is mocked.
     """
 
@@ -139,7 +141,7 @@ def test_PMID_downloader_no_pmcid_mocked(mock_entrez_elink, mock_entrez_read, re
 
     dummy_pmids_file_path = str(
         pathlib.Path(request.path).parent.parent
-        / "assets/scripts/dummy_pmids_no_pmcid.txt"
+        / "assets/scripts/dummy_pmids_no_pmcid.pkl"
     )
 
     with tempfile.TemporaryDirectory() as tmpdirname:

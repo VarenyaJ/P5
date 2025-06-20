@@ -11,14 +11,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-
-def _load_PMIDs(pmid_file_path: str) -> list[str]:
-    """This function takes the path of a .txt file with lines of the form PMID_1234567
-    and returns a list of the form [1234567,...]"""
-
-    with open(pmid_file_path, "r") as file:
-        pmid_list = [line.split("_")[1].rstrip() for line in file]
-    return pmid_list
+from scripts.utils import pkl_to_set
 
 
 def _get_pmcid(pmid: str) -> Optional[str]:
@@ -101,26 +94,31 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
 
 @click.command(
     help="""
-Takes a .txt file containing lines of the form PMID_1234567 
-and outputs a directory containing the corresponding PDFs of the journal articles 
+INPUT: a .pkl file whose entries are strings of the form "PMID_1234567" 
+OUTPUT: a directory containing the corresponding PDFs of the journal articles 
 (whenever they are accessible via PubMed Central).
 
-PMID_FILE_PATH:     where the .txt file is located
+PKL_FILE_PATH:     the file path for the .pkl file
 PDF_OUTPUT_DIR:     where you want the directory containing the PDFs to be located
 
 Example: 
-data/pmid_list.txt      data/pmid_pdfs, 
+data/pmids.pkl      data/pmid_pdfs, 
 """
 )
-@click.argument("pmid_file_path", type=click.Path(exists=True))
+@click.argument("pkl_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-def pmid_downloader(pmid_file_path: str, pdf_out_dir: str):
+def pmid_downloader(pkl_file_path: str, pdf_out_dir: str):
 
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids = _load_PMIDs(pmid_file_path)
+    pmids_with_PMID_text: set = pkl_to_set(
+        pkl_file_path
+    )  # entries of the form PMID_1234567
+    pmids: set = {
+        pmid.split("_")[1] for pmid in pmids_with_PMID_text
+    }  # entries of the form 1234567
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
