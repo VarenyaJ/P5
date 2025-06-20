@@ -1,4 +1,5 @@
 import os
+import tempfile
 from unittest import mock
 
 import pytest
@@ -6,8 +7,6 @@ from click.testing import CliRunner
 from docling.document_converter import DocumentConverter
 
 from scripts.PMID_downloader import pmid_downloader
-import pathlib
-import tempfile
 
 from scripts.utils import pkl_to_set
 
@@ -37,8 +36,24 @@ def pdf_bytes():
     )
 
 
+@pytest.fixture()
+def pmids():
+    return {"PMID_8755636", "PMID_16636245"}
+
+
+@pytest.fixture()
+def pmids_no_pdf():
+    return {"PMID_16636245", "PMID_19458539"}
+
+
+@pytest.fixture()
+def pmids_with_pdf():
+    return {"PMID_8755636", "PMID_20089953"}
+
+
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
-def test_pmid_downloader(request):
+@mock.patch("scripts.PMID_downloader.find_pmids")
+def test_pmid_downloader(mock_find_pmids, pmids):
     """
     This tests that everything works when we pass in a .pkl file containing two PMIDS.
     One of the PMIDs (which is PMID_8755636) corresponds to a PMCID and so will generate a PDF.
@@ -50,53 +65,57 @@ def test_pmid_downloader(request):
     )
 
     runner = CliRunner()
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        result = runner.invoke(pmid_downloader, [dummy_pmids_file_path, tmpdirname])
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        result = runner.invoke(
+            pmid_downloader,
+            [
+                tmp_dir,  # This Dir does not affect the test, but an existing need to be passed
+                tmp_dir,
+            ],
+        )
 
         assert (
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        pdf_file_names = {f for f in os.listdir(tmpdirname)}
-        pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(tmpdirname)}
-        expected_pmid_names = {"8755636"}
+        pdf_file_names = {f for f in os.listdir(tmp_dir)}
+        pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(tmp_dir)}
+        expected_pmid_names = {"PMID_8755636"}
 
         assert pdf_file_names_no_file_type == expected_pmid_names
-
+        mock_find_pmids.assert_called_once_with(tmp_dir, recursive=True)
         converter = DocumentConverter()
         for pdf in pdf_file_names:
-            converter.convert(f"{tmpdirname}/{pdf}")
+            converter.convert(f"{tmp_dir}/{pdf}")
 
         # asserts that each pdf is at least 1kb
         for pdf in pdf_file_names:
             # expected PDF has file size ≈ 204,000 bytes
-            assert os.path.getsize(f"{tmpdirname}/{pdf}") >= 200000
+            assert os.path.getsize(f"{tmp_dir}/{pdf}") >= 200000
 
 
-@mock.patch("Bio.Entrez.read")
-@mock.patch("Bio.Entrez.elink")
+@mock.patch("scripts.PMID_downloader.Entrez")
 @mock.patch("scripts.PMID_downloader.time.sleep")
 @mock.patch("scripts.PMID_downloader.webdriver.Chrome")
 @mock.patch("scripts.PMID_downloader.requests.Session.get")
+@mock.patch("scripts.PMID_downloader.find_pmids")
 def test_PMID_downloader_with_pmcid_mocked(
+    mock_find_pmids,
     mock_session_request,
     mock_chrome,
     mock_sleep,
-    mock_entrez_elink,
-    mock_entrez_read,
+    mock_entrez,
     pdf_bytes,
-    request,
+    pmids_with_pdf,
 ):
     """
     This tests that everything works when we pass in a .pkl containing two PMIDs that correspond to PMCIDs.
     In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_with_pmcid.pkl".
     Entrez, Selenium and requests are mocked.
     """
+    mock_find_pmids.return_value = pmids_with_pdf
+    mock_entrez.read.return_value = [{"LinkSetDb": [{"Link": [{"Id": "507429"}]}]}]
 
-    mock_entrez_elink.return_value = mock.MagicMock()
-    mock_entrez_read.return_value = [{"LinkSetDb": [{"Link": [{"Id": "507429"}]}]}]
-
-    # This is the raw bytes of a tiny PDF which just contains the word TEST
     mock_session_request.return_value.content = pdf_bytes
 
     runner = CliRunner()
@@ -125,17 +144,24 @@ def test_PMID_downloader_with_pmcid_mocked(
         ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
 
-@mock.patch("Bio.Entrez.read")
-@mock.patch("Bio.Entrez.elink")
-def test_PMID_downloader_no_pmcid_mocked(mock_entrez_elink, mock_entrez_read, request):
+@mock.patch("scripts.PMID_downloader.Entrez")
+@mock.patch("scripts.PMID_downloader.find_pmids")
+def test_PMID_downloader_no_pmcid_mocked(mock_find_pmids, mock_entrez, pmids_no_pdf):
     """
     This tests that everything works when we pass in a .pkl containing two PMIDs that do NOT correspond to PMCIDs.
     In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_no_pmcid.pkl".
     Entrez is mocked.
     """
-
-    mock_entrez_elink.return_value = mock.MagicMock()
-    mock_entrez_read.return_value = [{}]
+    mock_find_pmids.return_value = pmids_no_pdf
+    mock_entrez.read.return_value = [
+        {
+            "LinkSetDb": [],
+            "LinkSetDbHistory": [],
+            "ERROR": [],
+            "DbFrom": "pubmed",
+            "IdList": ["16636245"],
+        }
+    ]
 
     runner = CliRunner()
 
@@ -151,6 +177,8 @@ def test_PMID_downloader_no_pmcid_mocked(mock_entrez_elink, mock_entrez_read, re
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
+        mock_find_pmids.assert_called_once_with(tmp_dir, recursive=True)
+
         assert (
-            os.listdir(tmpdirname) == []
+            os.listdir(tmp_dir) == []
         ), "When running the test_PMID_downloader_no_pmcid_mocked test, the out directory unexpectedly contained a file."

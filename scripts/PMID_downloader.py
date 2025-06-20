@@ -1,14 +1,12 @@
+import time
+from pathlib import Path
 from typing import Optional
 
+import click
 import requests
 from Bio import Entrez
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import time
-import click
-
-from pathlib import Path
-
 from tqdm import tqdm
 
 from scripts.utils import pkl_to_set
@@ -18,18 +16,17 @@ def _get_pmcid(pmid: str) -> Optional[str]:
     """This function uses the PubMed API called Entrez to get a PMCID from a PMID.
     Once we have a PMCID we can use that to get the URL of a PDF.
     """
-
     Entrez.email = "fake.email@email.de"
 
     with Entrez.elink(
-        dbfrom="pubmed", db="pmc", id=pmid, linkname="pubmed_pmc"
+        dbfrom="pubmed", db="pmc", id=pmid.split("_")[-1], linkname="pubmed_pmc"
     ) as handle:
         records = Entrez.read(handle)
 
-    linksets = records[0].get("LinkSetDb", [])
-    if linksets == []:
+    link_sets_db = records[0]["LinkSetDb"]
+    if link_sets_db == []:
         return None
-    pmcid = linksets[0]["Link"][0]["Id"]
+    pmcid = link_sets_db[0]["Link"][0]["Id"]
     return pmcid
 
 
@@ -106,8 +103,8 @@ data/pmids.pkl      data/pmid_pdfs,
 )
 @click.argument("pkl_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-def pmid_downloader(pkl_file_path: str, pdf_out_dir: str):
-
+@click.option("--recursive_dir_search", type=click.BOOL, default=True)
+def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, recursive_dir_search: bool):
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
@@ -121,10 +118,10 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str):
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
-            progress_bar.set_description(f"Processing PMID_{pmid}")
+            progress_bar.set_description(f"Processing {pmid}")
             pmcid = _get_pmcid(pmid)
             if pmcid is None:
-                click.secho(message=f"No PMCID found for PMID_{pmid}.", fg="yellow")
+                click.secho(message=f"No PMCID found for {pmid}.", fg="yellow")
                 progress_bar.update(1)
                 continue
             download_pdf(pmcid, pmid, pdf_out_dir)

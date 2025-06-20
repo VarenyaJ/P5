@@ -1,7 +1,5 @@
 import pathlib
-import random
 import re
-import string
 from os import walk
 from typing import Union, Optional
 
@@ -12,6 +10,7 @@ import pickle
 
 def random_string() -> str:
     return "".join(random.choice(string.ascii_letters) for _ in range(5))
+pmid_regex = re.compile(r"PMID_\d{1,8}")
 
 
 def find_pmids(
@@ -48,7 +47,7 @@ def find_pmids(
             continue
 
         for filename in file_names:
-            matches = re.findall(r"PMID_\d{1,8}", filename)
+            matches = re.findall(pmid_regex, filename)
 
             if len(matches) != 1:
                 click.secho(
