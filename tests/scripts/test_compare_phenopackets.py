@@ -1,4 +1,6 @@
-from P5_test.scripts.compare_phenopackets import compare_jsons
+import pytest
+
+from scripts.compare_phenopackets import compare_jsons
 
 
 def test_perfect_match():
