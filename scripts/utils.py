@@ -5,6 +5,13 @@ from typing import Union, Optional
 
 import click
 
+import pickle
+
+
+def random_string() -> str:
+    return "".join(random.choice(string.ascii_letters) for _ in range(5))
+
+
 pmid_regex = re.compile(r"PMID_\d{1,8}")
 
 
@@ -57,3 +64,13 @@ def find_pmids(
             return pmids
 
     return pmids
+
+
+def pkl_to_set(pkl_file_path: str) -> set:
+    """This function takes a .pkl file loaded with a set
+    and returns a set object"""
+
+    with open(pkl_file_path, "rb") as file:
+        output_set = pickle.load(file)
+
+    return output_set

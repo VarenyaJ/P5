@@ -16,6 +16,21 @@ To filter the phenopackets by the cases use:
 python create_phenopacket_dataset.py "./data/tmp/cases" "./data/tmp/notebooks" "./data/tmp/phenopacket_dataset.csv" --recursive_ground_truth_dir True
 ```
 
+#### create_pmid_pkl script
+Run: 
+```shell
+python scripts/create_pmid_pkl.py "data/tmp/cases" "data/tmp/pmids.pkl"
+```
+This will look at every filename in the directory *data/tmp/cases*, and whenever a filename contains a string of the form
+"PMID_{1-8 digits}", that PMID will be added to the .pkl file *pmids.pkl*. 
+
+#### PMID downloader script
+Run: 
+```shell
+python scripts/PMID_downloader.py "tmp/pmids.pkl" "data/tmp/pmid_pdfs"
+```
+This will download every PDF in the .pkl file to the directory data/tmp/pmid_pdfs whenever this is possible (i.e. whenever there is a valid PMCID).
+
 #### PDF to Phenopacket Script
 Make sure ollama is installed on your machine and your env. Start the server.
 Then download the model of your choice via:
