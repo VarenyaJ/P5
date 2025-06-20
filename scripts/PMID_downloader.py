@@ -91,7 +91,6 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
             fg="red",
         )
 
-
 @click.command(
     help="""
 INPUT: a .pkl file whose entries are strings of the form "PMID_1234567" 
