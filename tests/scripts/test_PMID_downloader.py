@@ -1,4 +1,5 @@
 import os
+import pathlib
 import tempfile
 from unittest import mock
 
@@ -9,6 +10,8 @@ from docling.document_converter import DocumentConverter
 from scripts.PMID_downloader import pmid_downloader
 
 from scripts.utils import pkl_to_set
+
+import pickle
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
@@ -37,42 +40,39 @@ def pdf_bytes():
 
 
 @pytest.fixture()
-def pmids():
+def pmids_set():
     return {"PMID_8755636", "PMID_16636245"}
 
 
 @pytest.fixture()
-def pmids_no_pdf():
+def pmids_no_pdf_set():
     return {"PMID_16636245", "PMID_19458539"}
 
 
 @pytest.fixture()
-def pmids_with_pdf():
+def pmids_with_pdf_set():
     return {"PMID_8755636", "PMID_20089953"}
 
 
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
-@mock.patch("scripts.PMID_downloader.find_pmids")
-def test_pmid_downloader(mock_find_pmids, pmids):
+def test_pmid_downloader(pmids_set, request):
     """
     This tests that everything works when we pass in a .pkl file containing two PMIDS.
     One of the PMIDs (which is PMID_8755636) corresponds to a PMCID and so will generate a PDF.
     The other PMID does not correspond to a PMCID and so should not correspond to a PDF.
-    They are contained in the file "assets/scripts/dummy_pmids.pkl".
     """
-    dummy_pmids_file_path = str(
+
+    pmids_pkl_file_path = str(
         pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pmids.pkl"
     )
 
+    # create the .pkl file from the fixture pmids_set above
+    with open(pmids_pkl_file_path, "wb") as file:
+        pickle.dump(pmids_set, file)
+
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmp_dir:
-        result = runner.invoke(
-            pmid_downloader,
-            [
-                tmp_dir,  # This Dir does not affect the test, but an existing need to be passed
-                tmp_dir,
-            ],
-        )
+        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, tmp_dir])
 
         assert (
             result.exit_code == 0
@@ -83,7 +83,6 @@ def test_pmid_downloader(mock_find_pmids, pmids):
         expected_pmid_names = {"PMID_8755636"}
 
         assert pdf_file_names_no_file_type == expected_pmid_names
-        mock_find_pmids.assert_called_once_with(tmp_dir, recursive=True)
         converter = DocumentConverter()
         for pdf in pdf_file_names:
             converter.convert(f"{tmp_dir}/{pdf}")
@@ -98,61 +97,59 @@ def test_pmid_downloader(mock_find_pmids, pmids):
 @mock.patch("scripts.PMID_downloader.time.sleep")
 @mock.patch("scripts.PMID_downloader.webdriver.Chrome")
 @mock.patch("scripts.PMID_downloader.requests.Session.get")
-@mock.patch("scripts.PMID_downloader.find_pmids")
 def test_PMID_downloader_with_pmcid_mocked(
-    mock_find_pmids,
     mock_session_request,
     mock_chrome,
     mock_sleep,
     mock_entrez,
     pdf_bytes,
-    pmids_with_pdf,
+    pmids_with_pdf_set,
+    request,
 ):
     """
     This tests that everything works when we pass in a .pkl containing two PMIDs that correspond to PMCIDs.
     In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_with_pmcid.pkl".
     Entrez, Selenium and requests are mocked.
     """
-    mock_find_pmids.return_value = pmids_with_pdf
     mock_entrez.read.return_value = [{"LinkSetDb": [{"Link": [{"Id": "507429"}]}]}]
 
     mock_session_request.return_value.content = pdf_bytes
 
     runner = CliRunner()
 
-    dummy_pmids_file_path = str(
+    pmids_pkl_file_path = str(
         pathlib.Path(request.path).parent.parent
         / "assets/scripts/dummy_pmids_with_pmcid.pkl"
     )
 
-    expected_pmids = pkl_to_set(dummy_pmids_file_path)
+    # create the .pkl file from the fixture pmids_with_pdf_set above
+    with open(pmids_pkl_file_path, "wb") as file:
+        pickle.dump(pmids_with_pdf_set, file)
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        result = runner.invoke(pmid_downloader, [dummy_pmids_file_path, tmpdirname])
+    expected_pmids = pmids_with_pdf_set
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, tmp_dir])
 
         assert (
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        pdf_names = {f.split(".")[0] for f in os.listdir(tmpdirname)}
-        expected_pmid_names = {
-            pmid_name.split("_")[1].rstrip() for pmid_name in expected_pmids
-        }
+        pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(tmp_dir)}
 
         assert (
-            expected_pmid_names == pdf_names
+            expected_pmids == pdf_file_names_no_file_type
         ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
 
 @mock.patch("scripts.PMID_downloader.Entrez")
-@mock.patch("scripts.PMID_downloader.find_pmids")
-def test_PMID_downloader_no_pmcid_mocked(mock_find_pmids, mock_entrez, pmids_no_pdf):
+def test_PMID_downloader_no_pmcid_mocked(mock_entrez, pmids_no_pdf_set, request):
     """
     This tests that everything works when we pass in a .pkl containing two PMIDs that do NOT correspond to PMCIDs.
     In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_no_pmcid.pkl".
     Entrez is mocked.
     """
-    mock_find_pmids.return_value = pmids_no_pdf
+
     mock_entrez.read.return_value = [
         {
             "LinkSetDb": [],
@@ -165,19 +162,21 @@ def test_PMID_downloader_no_pmcid_mocked(mock_find_pmids, mock_entrez, pmids_no_
 
     runner = CliRunner()
 
-    dummy_pmids_file_path = str(
+    pmids_pkl_file_path = str(
         pathlib.Path(request.path).parent.parent
         / "assets/scripts/dummy_pmids_no_pmcid.pkl"
     )
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        result = runner.invoke(pmid_downloader, [dummy_pmids_file_path, tmpdirname])
+    # create the .pkl file from the fixture pmids_no_pdf_set above
+    with open(pmids_pkl_file_path, "wb") as file:
+        pickle.dump(pmids_no_pdf_set, file)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, tmp_dir])
 
         assert (
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
-
-        mock_find_pmids.assert_called_once_with(tmp_dir, recursive=True)
 
         assert (
             os.listdir(tmp_dir) == []

@@ -10,6 +10,8 @@ import pickle
 
 def random_string() -> str:
     return "".join(random.choice(string.ascii_letters) for _ in range(5))
+
+
 pmid_regex = re.compile(r"PMID_\d{1,8}")
 
 
@@ -62,14 +64,6 @@ def find_pmids(
             return pmids
 
     return pmids
-
-
-def set_to_pkl(input_set: set, pkl_file_path: str):
-    """This function takes a set (e.g. created by the function find_pmids)
-    and loads them into a .pkl file"""
-
-    with open(pkl_file_path, "wb") as file:
-        pickle.dump(input_set, file)
 
 
 def pkl_to_set(pkl_file_path: str) -> set:

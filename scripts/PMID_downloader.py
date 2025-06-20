@@ -88,6 +88,7 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
             fg="red",
         )
 
+
 @click.command(
     help="""
 INPUT: a .pkl file whose entries are strings of the form "PMID_1234567" 
@@ -103,23 +104,17 @@ data/pmids.pkl      data/pmid_pdfs,
 )
 @click.argument("pkl_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-@click.option("--recursive_dir_search", type=click.BOOL, default=True)
-def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, recursive_dir_search: bool):
+def pmid_downloader(pkl_file_path: str, pdf_out_dir: str):
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids_with_PMID_text: set = pkl_to_set(
-        pkl_file_path
-    )  # entries of the form PMID_1234567
-    pmids: set = {
-        pmid.split("_")[1] for pmid in pmids_with_PMID_text
-    }  # entries of the form 1234567
+    pmids: set = pkl_to_set(pkl_file_path)  # entries of the form "PMID_1234567"
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
             progress_bar.set_description(f"Processing {pmid}")
-            pmcid = _get_pmcid(pmid)
+            pmcid: str = _get_pmcid(pmid)  # of the form "1234567"
             if pmcid is None:
                 click.secho(message=f"No PMCID found for {pmid}.", fg="yellow")
                 progress_bar.update(1)
