@@ -91,12 +91,10 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
 
 @click.command(
     help="""
-Takes a .txt file containing lines of the form PMID_1234567 
-and outputs a directory containing the corresponding PDFs of the journal articles 
-(whenever they are accessible via PubMed Central).
+Takes a directory to find PMIDs and downloads the corresponding PDFs from PubMed (whenever they are accessible via PubMed Central).
 
-PMID_FILE_PATH:     where the .txt file is located
-PDF_OUTPUT_DIR:     where you want the directory containing the PDFs to be located
+PMID_FILE_PATH:     Directory where PMID files are located.
+PDF_OUTPUT_DIR:     Ouput directory where PMID PDFs will be written.
 
 Example: 
 data/pmid_list.txt      data/pmid_pdfs, 
