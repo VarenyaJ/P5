@@ -16,7 +16,6 @@ def _get_pmcid(pmid: str) -> Optional[str]:
     """This function uses the PubMed API called Entrez to get a PMCID from a PMID.
     Once we have a PMCID we can use that to get the URL of a PDF.
     """
-
     Entrez.email = "fake.email@email.de"
 
     with Entrez.elink(
@@ -111,7 +110,7 @@ def pmid_downloader(pmid_file_path: str, pdf_out_dir: str):
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids = find_pmids(pmid_file_path)
+    pmids = [pmid.split("_")[-1] for pmid in find_pmids(pmid_file_path)]
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
