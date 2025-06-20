@@ -61,27 +61,33 @@ def test_pmid_downloader(mock_find_pmids, pmids):
     mock_find_pmids.return_value = pmids
 
     runner = CliRunner()
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        result = runner.invoke(pmid_downloader, ["Mock/dir/", tmpdirname])
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        result = runner.invoke(
+            pmid_downloader,
+            [
+                tmp_dir,  # This Dir does not affect the test, but an existing need to be passed
+                tmp_dir,
+            ],
+        )
 
         assert (
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        pdf_file_names = [f for f in os.listdir(tmpdirname)]
-        pdf_file_names_no_file_type = [f.split(".")[0] for f in os.listdir(tmpdirname)]
+        pdf_file_names = [f for f in os.listdir(tmp_dir)]
+        pdf_file_names_no_file_type = [f.split(".")[0] for f in os.listdir(tmp_dir)]
         expected_pmids = ["8755636"]
 
         assert pdf_file_names_no_file_type == expected_pmids
 
         converter = DocumentConverter()
         for pdf in pdf_file_names:
-            converter.convert(f"{tmpdirname}/{pdf}")
+            converter.convert(f"{tmp_dir}/{pdf}")
 
         # asserts that each pdf is at least 1kb
         for pdf in pdf_file_names:
             # expected PDF has file size ≈ 204,000 bytes
-            assert os.path.getsize(f"{tmpdirname}/{pdf}") >= 200000
+            assert os.path.getsize(f"{tmp_dir}/{pdf}") >= 200000
 
 
 @mock.patch("Bio.Entrez.read")
@@ -113,14 +119,20 @@ def test_PMID_downloader_with_pmcid_mocked(
 
     runner = CliRunner()
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        result = runner.invoke(pmid_downloader, ["/Mock/Path", tmpdirname])
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        result = runner.invoke(
+            pmid_downloader,
+            [
+                tmp_dir,  # This Dir does not affect the test, but an existing need to be passed
+                tmp_dir,
+            ],
+        )
 
         assert (
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        pdf_names = [f.split(".")[0] for f in os.listdir(tmpdirname)]
+        pdf_names = [f.split(".")[0] for f in os.listdir(tmp_dir)]
         expected_pmid_names = [line.split("_")[1].rstrip() for line in pmids_with_pdf]
 
         assert sorted(expected_pmid_names) == sorted(
@@ -145,13 +157,19 @@ def test_PMID_downloader_no_pmcid_mocked(
 
     runner = CliRunner()
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        result = runner.invoke(pmid_downloader, ["/Mock/Dir", tmpdirname])
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        result = runner.invoke(
+            pmid_downloader,
+            [
+                tmp_dir,  # This Dir does not affect the test, but an existing need to be passed
+                tmp_dir,
+            ],
+        )
 
         assert (
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
         assert (
-            os.listdir(tmpdirname) == []
+            os.listdir(tmp_dir) == []
         ), "When running the test_PMID_downloader_no_pmcid_mocked test, the out directory unexpectedly contained a file."
