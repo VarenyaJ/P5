@@ -1,5 +1,8 @@
 import click
 import pickle
+
+from sympy.logic.boolalg import Boolean
+
 from scripts.utils import find_pmids
 
 
@@ -18,10 +21,12 @@ assets/cases assets/pmids.pkl
 )
 @click.argument("pmid_directory", type=click.Path(exists=True, dir_okay=True))
 @click.argument("pkl_file_path", type=click.Path(exists=False))
-# @click.argument("recursive_dir_search", type=click.BOOL, default=True)
-def create_pmid_pkl(pmid_directory: str, pkl_file_path: str):
-    print("hello")
-    pmid_set = find_pmids(pmid_directory, True)
+@click.option("--recursive_dir_search", is_flag=True, default=True)
+def create_pmid_pkl(
+    pmid_directory: str, pkl_file_path: str, recursive_dir_search: bool
+):
+
+    pmid_set = find_pmids(pmid_directory, recursive_dir_search)
 
     with open(pkl_file_path, "wb") as file:
         pickle.dump(pmid_set, file)
