@@ -50,13 +50,12 @@ def pmids_with_pdf():
 
 
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
-@mock.patch("scripts.utils.find_pmids")
+@mock.patch("scripts.PMID_downloader.find_pmids")
 def test_pmid_downloader(mock_find_pmids, pmids):
     """
-    This tests that everything works when we pass in a file containing two PMIDS.
-    The first PMID corresponds to a PMCID and so will generate a PDF.
-    The second PMID does not correspond to a PMCID and so should not correspond to a PDF.
-    They are contained in the file "assets/scripts/dummy_pmids.txt".
+    This is an integration test, testing the selenium integration.
+    1. The first PMID corresponds to a PMCID and so will generate a PDF.
+    2. The second PMID does not correspond to a PMCID and so should not correspond to a PDF.
     """
     mock_find_pmids.return_value = pmids
 
@@ -90,30 +89,25 @@ def test_pmid_downloader(mock_find_pmids, pmids):
             assert os.path.getsize(f"{tmp_dir}/{pdf}") >= 200000
 
 
-@mock.patch("Bio.Entrez.read")
-@mock.patch("Bio.Entrez.elink")
+@mock.patch("scripts.PMID_downloader.Entrez")
 @mock.patch("scripts.PMID_downloader.time.sleep")
 @mock.patch("scripts.PMID_downloader.webdriver.Chrome")
 @mock.patch("scripts.PMID_downloader.requests.Session.get")
-@mock.patch("scripts.PMID_downloader.utils.find_pmids")
+@mock.patch("scripts.PMID_downloader.find_pmids")
 def test_PMID_downloader_with_pmcid_mocked(
+    mock_find_pmids,
     mock_session_request,
     mock_chrome,
     mock_sleep,
-    mock_entrez_elink,
-    mock_entrez_read,
-    mock_find_pmids,
+    mock_entrez,
     pdf_bytes,
     pmids_with_pdf,
 ):
     """
     This tests that everything works when we pass in PMIDs that correspond to PMCIDs.
-    In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_with_pmcid.txt".
-    Entrez, Selenium and requests  are mocked.
     """
-    mock_find_pmids = pmids_with_pdf
-    mock_entrez_elink.return_value = mock.MagicMock()
-    mock_entrez_read.return_value = [{"LinkSetDb": [{"Link": [{"Id": "507429"}]}]}]
+    mock_find_pmids.return_value = pmids_with_pdf
+    mock_entrez.read.return_value = [{"LinkSetDb": [{"Link": [{"Id": "507429"}]}]}]
 
     mock_session_request.return_value.content = pdf_bytes
 
@@ -139,20 +133,14 @@ def test_PMID_downloader_with_pmcid_mocked(
         ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
 
-@mock.patch("Bio.Entrez.read")
-@mock.patch("Bio.Entrez.elink")
-@mock.patch("scripts.utils.find_pmids")
-def test_PMID_downloader_no_pmcid_mocked(
-    mock_entrez_elink, mock_entrez_read, mock_find_pmids, pmids_no_pdf
-):
+@mock.patch("scripts.PMID_downloader.Entrez")
+@mock.patch("scripts.PMID_downloader.find_pmids")
+def test_PMID_downloader_no_pmcid_mocked(mock_entrez, mock_find_pmids, pmids_no_pdf):
     """
     This tests that everything works when we pass in PMIDs that do not correspond to PMCIDs.
-    In particular when we pass in the PMIDS contained in the file "assets/scripts/dummy_pmids_no_pmcid.txt".
-    Entrez is mocked.
     """
     mock_find_pmids = pmids_no_pdf
-    mock_entrez_elink.return_value = mock.MagicMock()
-    mock_entrez_read.return_value = [{}]
+    mock_entrez.read.return_value = [{}]
 
     runner = CliRunner()
 
