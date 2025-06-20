@@ -19,7 +19,7 @@ def _get_pmcid(pmid: str) -> Optional[str]:
     Entrez.email = "fake.email@email.de"
 
     with Entrez.elink(
-        dbfrom="pubmed", db="pmc", id=pmid, linkname="pubmed_pmc"
+        dbfrom="pubmed", db="pmc", id=pmid.split("_")[-1], linkname="pubmed_pmc"
     ) as handle:
         records = Entrez.read(handle)
 
@@ -110,14 +110,14 @@ def pmid_downloader(pmid_file_path: str, pdf_out_dir: str):
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids = [pmid.split("_")[-1] for pmid in find_pmids(pmid_file_path)]
+    pmids = find_pmids(pmid_file_path)
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
-            progress_bar.set_description(f"Processing PMID_{pmid}")
+            progress_bar.set_description(f"Processing {pmid}")
             pmcid = _get_pmcid(pmid)
             if pmcid is None:
-                click.secho(message=f"No PMCID found for PMID_{pmid}.", fg="yellow")
+                click.secho(message=f"No PMCID found for {pmid}.", fg="yellow")
                 progress_bar.update(1)
                 continue
             download_pdf(pmcid, pmid, pdf_out_dir)

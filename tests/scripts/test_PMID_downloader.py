@@ -75,7 +75,7 @@ def test_pmid_downloader(mock_find_pmids, pmids):
 
         pdf_file_names = [f for f in os.listdir(tmp_dir)]
         pdf_file_names_no_file_type = [f.split(".")[0] for f in os.listdir(tmp_dir)]
-        expected_pmids = ["8755636"]
+        expected_pmids = ["PMID_8755636"]
 
         assert pdf_file_names_no_file_type == expected_pmids
 
