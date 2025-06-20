@@ -102,13 +102,13 @@ data/pmid_list.txt      data/pmid_pdfs,
 )
 @click.argument("pmid_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-def pmid_downloader(pmid_file_path: str, pdf_out_dir: str):
-
+@click.option("--recursive_dir_search", type=click.BOOL, default=True)
+def pmid_downloader(pmid_file_path: str, pdf_out_dir: str, recursive_dir_search: bool):
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids = find_pmids(pmid_file_path)
+    pmids = find_pmids(pmid_file_path, recursive=recursive_dir_search)
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
