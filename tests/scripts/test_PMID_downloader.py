@@ -36,17 +36,17 @@ def pdf_bytes():
 
 @pytest.fixture()
 def pmids():
-    return ["PMID_8755636", "PMID_16636245"]
+    return {"PMID_8755636", "PMID_16636245"}
 
 
 @pytest.fixture()
 def pmids_no_pdf():
-    return ["PMID_16636245" "PMID_19458539"]
+    return {"PMID_16636245", "PMID_19458539"}
 
 
 @pytest.fixture()
 def pmids_with_pdf():
-    return ["PMID_8755636", "PMID_20089953"]
+    return {"PMID_8755636", "PMID_20089953"}
 
 
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
