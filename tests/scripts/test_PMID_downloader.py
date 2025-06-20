@@ -11,7 +11,6 @@ import tempfile
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
-
 @pytest.fixture()
 def pdf_bytes():
     return (
@@ -34,7 +33,8 @@ def pdf_bytes():
         b"trailer\n<< /Root 1 0 R /Size 6 >>\nstartxref\n401\n%%EOF"
     )
 
-#FIX THIS CODE!
+
+# FIX THIS CODE!
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 def test_pmid_downloader(request):
     """
@@ -43,15 +43,15 @@ def test_pmid_downloader(request):
     The second PMID does not correspond to a PMCID and so should not correspond to a PDF.
     They are contained in the file "assets/scripts/dummy_pmids.txt".
     """
-    dummy_pmid_dir = str(
-        pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pmid_dir"
+    dummy_pmids_file_path = str(
+        pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pmids.txt"
     )
     with open(dummy_pmids_file_path, "r") as file:
         dummy_pmids: list[str] = file.readlines()
 
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmpdirname:
-        result = runner.invoke(pmid_downloader, [dummy_pmid_dir, tmpdirname])
+        result = runner.invoke(pmid_downloader, [dummy_pmids_file_path, tmpdirname])
 
         assert (
             result.exit_code == 0
@@ -59,9 +59,9 @@ def test_pmid_downloader(request):
 
         pdf_file_names = [f for f in os.listdir(tmpdirname)]
         pdf_file_names_no_file_type = [f.split(".")[0] for f in os.listdir(tmpdirname)]
-        expected_pmid_name = "8755636"
+        expected_pmids = ["8755636"]
 
-        assert pdf_file_names_no_file_type == expected_pmid_name
+        assert pdf_file_names_no_file_type == expected_pmids
 
         converter = DocumentConverter()
         for pdf in pdf_file_names:
@@ -115,11 +115,11 @@ def test_PMID_downloader_with_pmcid_mocked(
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        PDF_names = [f.split(".")[0] for f in os.listdir(tmpdirname)]
-        expected_PMID_names = [line.split("_")[1].rstrip() for line in dummy_pmids]
+        pdf_names = [f.split(".")[0] for f in os.listdir(tmpdirname)]
+        expected_pmid_names = [line.split("_")[1].rstrip() for line in dummy_pmids]
 
-        assert sorted(expected_PMID_names) == sorted(
-            PDF_names
+        assert sorted(expected_pmid_names) == sorted(
+            pdf_names
         ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
 

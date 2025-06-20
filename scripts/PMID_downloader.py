@@ -60,7 +60,7 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
 
         with webdriver.Chrome(options=options) as driver:
             driver.get(pdf_url)
-            time.sleep(2)  # give time for JS challenge to complete
+            time.sleep(4)  # give time for JS challenge to complete
 
             # Get the actual PDF URL if redirected
             final_pdf_url = driver.current_url
@@ -114,14 +114,13 @@ data/pmid_list.txt      data/pmid_pdfs,
 )
 @click.argument("pmid_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-def PMID_downloader(pmid_file_path: str, pdf_out_dir: str):
+def pmid_downloader(pmid_file_path: str, pdf_out_dir: str):
 
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
     pmids = _load_PMIDs(pmid_file_path)
-    no_of_pmids = len(pmids)
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
@@ -137,4 +136,4 @@ def PMID_downloader(pmid_file_path: str, pdf_out_dir: str):
 
 
 if __name__ == "__main__":
-    PMID_downloader()
+    pmid_downloader()
