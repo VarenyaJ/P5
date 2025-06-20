@@ -21,7 +21,7 @@ def test_filter_phenopackets(
     recursive_input_dir, recursive_ground_truth_dir, expected_pmids, expected_n_pmids
 ):
     """
-    Directory is construced as follows:
+    Directory is constructed as follows:
     tmp_dir
     ├── ground_truth
     │ ├── AAGAB
