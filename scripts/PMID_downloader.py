@@ -24,10 +24,10 @@ def _get_pmcid(pmid: str) -> Optional[str]:
     ) as handle:
         records = Entrez.read(handle)
 
-    linksets = records[0].get("LinkSetDb", [])
-    if linksets == []:
+    link_sets_db = records[0]["LinkSetDb"]
+    if link_sets_db == []:
         return None
-    pmcid = linksets[0]["Link"][0]["Id"]
+    pmcid = link_sets_db[0]["Link"][0]["Id"]
     return pmcid
 
 
