@@ -1,5 +1,3 @@
-import pytest
-
 from P5_test.scripts.compare_phenopackets import compare_jsons
 
 
