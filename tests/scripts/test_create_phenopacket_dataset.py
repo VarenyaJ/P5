@@ -20,6 +20,35 @@ from scripts.create_phenopacket_dataset import create_phenopacket_dataset
 def test_filter_phenopackets(
     recursive_input_dir, recursive_ground_truth_dir, expected_pmids, expected_n_pmids
 ):
+    """
+    Directory is construced as follows:
+    tmp_dir
+    ├── ground_truth
+    │ ├── AAGAB
+    │ │ └── phenopackets
+    │ │     ├── PMID_7803799_0.json
+    │ │     └── PMID_7803799_1.json
+    │ ├── ACTB
+    │ │ └── phenopackets
+    │ │     ├── PMID_8800795_0.json
+    │ │     └── PMID_8800795_1.json
+    │ ├── ERF
+    │ │ └── phenopackets
+    │ │     ├── PMID_0000000_0.json
+    │ │     └── PMID_0000000_1.json
+    │ ├── FBLX4
+    │ │ └── phenopackets
+    │ │     ├── PMID_1111111_0.json
+    │ │     └── PMID_1111111_1.json
+    │ └── POT1
+    │     └── phenopackets
+    │         ├── NO_PUBMED_ID_0.json
+    │         └── NO_PUBMED_ID_1.json
+    ├── inputs
+    │ ├── PMID_7803799.pdf
+    │ └── PMID_8800795.pdf
+    └── out_dir
+    """
     random_file_dirs = ["AAGAB", "ACTB", "ERF", "FBLX4", "POT1"]
     pmids = ["PMID_7803799", "PMID_8800795"]
     not_matching_pmids = ["PMID_0000000", "PMID_1111111", "NO_PUBMED_ID"]
