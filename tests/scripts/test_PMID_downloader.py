@@ -78,7 +78,7 @@ def test_pmid_downloader(mock_find_pmids, pmids):
         expected_pmids = ["PMID_8755636"]
 
         assert pdf_file_names_no_file_type == expected_pmids
-
+        mock_find_pmids.assert_called_once_with(tmp_dir, recursive=True)
         converter = DocumentConverter()
         for pdf in pdf_file_names:
             converter.convert(f"{tmp_dir}/{pdf}")
@@ -127,7 +127,7 @@ def test_PMID_downloader_with_pmcid_mocked(
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
         pdf_names = [f.split(".")[0] for f in os.listdir(tmp_dir)]
-
+        mock_find_pmids.assert_called_once_with(tmp_dir, recursive=True)
         assert sorted(pmids_with_pdf) == sorted(
             pdf_names
         ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
@@ -135,12 +135,20 @@ def test_PMID_downloader_with_pmcid_mocked(
 
 @mock.patch("scripts.PMID_downloader.Entrez")
 @mock.patch("scripts.PMID_downloader.find_pmids")
-def test_PMID_downloader_no_pmcid_mocked(mock_entrez, mock_find_pmids, pmids_no_pdf):
+def test_PMID_downloader_no_pmcid_mocked(mock_find_pmids, mock_entrez, pmids_no_pdf):
     """
     This tests that everything works when we pass in PMIDs that do not correspond to PMCIDs.
     """
-    mock_find_pmids = pmids_no_pdf
-    mock_entrez.read.return_value = [{}]
+    mock_find_pmids.return_value = pmids_no_pdf
+    mock_entrez.read.return_value = [
+        {
+            "LinkSetDb": [],
+            "LinkSetDbHistory": [],
+            "ERROR": [],
+            "DbFrom": "pubmed",
+            "IdList": ["16636245"],
+        }
+    ]
 
     runner = CliRunner()
 
@@ -156,6 +164,8 @@ def test_PMID_downloader_no_pmcid_mocked(mock_entrez, mock_find_pmids, pmids_no_
         assert (
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
+
+        mock_find_pmids.assert_called_once_with(tmp_dir, recursive=True)
 
         assert (
             os.listdir(tmp_dir) == []
