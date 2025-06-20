@@ -53,15 +53,12 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
         # via guesswork, this is probably the URL of the PDF
         pdf_url = f"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC{pmcid}/pdf/"
 
-        # set up the Selenium browser. The --headless argument means the Chrome browser does not pop up.
-        # TODO ChatGPT says that to make headless work on windows, \
-        #  some other arguments might need to be added. \
-        #  I did not add them, because currently we would have no way of testing it.
+        # set up the Selenium browser. The --headless=new argument means the Chrome browser does not pop up.
+        # TODO: Additional arguments needed to implement headless and test for other OS's
         options = Options()
-        options.add_argument("--headless")
+        options.add_argument("--headless=new")
 
         with webdriver.Chrome(options=options) as driver:
-            # load the page and pause for 5 seconds
             driver.get(pdf_url)
             time.sleep(2)  # give time for JS challenge to complete
 
@@ -75,7 +72,7 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
         for cookie in cookies:
             session.cookies.set(cookie["name"], cookie["value"])
 
-        # TODO make this less Mac-specific
+        # TODO test on other OS's using different user agents
         headers = {
             "User-Agent": (
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -126,7 +123,7 @@ def PMID_downloader(pmid_file_path: str, pdf_out_dir: str):
     pmids = _load_PMIDs(pmid_file_path)
     no_of_pmids = len(pmids)
 
-    with tqdm(total=no_of_pmids) as progress_bar:
+    with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
             progress_bar.set_description(f"Processing PMID_{pmid}")
             pmcid = _get_pmcid(pmid)
@@ -136,9 +133,7 @@ def PMID_downloader(pmid_file_path: str, pdf_out_dir: str):
                 continue
             download_pdf(pmcid, pmid, pdf_out_dir)
             progress_bar.update(1)
-        progress_bar.set_description(
-            f"Processing of {str(no_of_pmids)} PMIDs complete."
-        )
+        progress_bar.set_description(f"Processing of {str(len(pmids))} PMIDs complete.")
 
 
 if __name__ == "__main__":
