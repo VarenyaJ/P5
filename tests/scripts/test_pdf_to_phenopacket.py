@@ -16,7 +16,7 @@ CI = bool(os.getenv("GITHUB_ACTIONS"))
 @pytest.mark.parametrize("file_type", [".pdf", ".txt"])
 def test_file_to_phenopacket(request, file_type):
     asset_dir = str(
-        pathlib.Path(request.path).parent.parent / "assets/scripts/file_to_phenopacket"
+        pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pdfs"
     )
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmp_dir:
