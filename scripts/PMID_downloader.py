@@ -1,24 +1,15 @@
+import time
+from pathlib import Path
 from typing import Optional
 
+import click
 import requests
 from Bio import Entrez
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import time
-import click
-
-from pathlib import Path
-
 from tqdm import tqdm
 
-
-def _load_PMIDs(pmid_file_path: str) -> list[str]:
-    """This function takes the path of a .txt file with lines of the form PMID_1234567
-    and returns a list of the form [1234567,...]"""
-
-    with open(pmid_file_path, "r") as file:
-        pmid_list = [line.split("_")[1].rstrip() for line in file]
-    return pmid_list
+from scripts.utils import find_pmids
 
 
 def _get_pmcid(pmid: str) -> Optional[str]:
@@ -120,7 +111,7 @@ def pmid_downloader(pmid_file_path: str, pdf_out_dir: str):
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids = _load_PMIDs(pmid_file_path)
+    pmids = find_pmids(pmid_file_path)
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:
