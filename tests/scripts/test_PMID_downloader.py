@@ -95,7 +95,7 @@ def test_pmid_downloader(mock_find_pmids, pmids):
 @mock.patch("scripts.PMID_downloader.time.sleep")
 @mock.patch("scripts.PMID_downloader.webdriver.Chrome")
 @mock.patch("scripts.PMID_downloader.requests.Session.get")
-@mock.patch("scripts.utils.find_pmids")
+@mock.patch("scripts.PMID_downloader.utils.find_pmids")
 def test_PMID_downloader_with_pmcid_mocked(
     mock_session_request,
     mock_chrome,
@@ -133,9 +133,8 @@ def test_PMID_downloader_with_pmcid_mocked(
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
         pdf_names = [f.split(".")[0] for f in os.listdir(tmp_dir)]
-        expected_pmid_names = [line.split("_")[1].rstrip() for line in pmids_with_pdf]
 
-        assert sorted(expected_pmid_names) == sorted(
+        assert sorted(pmids_with_pdf) == sorted(
             pdf_names
         ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
