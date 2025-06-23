@@ -8,7 +8,7 @@ import pytest
 from click.testing import CliRunner
 from docling.document_converter import DocumentConverter
 
-from scripts.utils import pkl_path_to_set
+from scripts.utils import pkl_loader
 from scripts.create_pmid_pkl import create_pmid_pkl
 
 
@@ -26,6 +26,6 @@ def test_create_pmid_pkl(mock_find_pmids, test_pmids):
             result.exit_code == 0
         ), f"CLI exited with code {result.exit_code}: {result.output}"
 
-        output_set = pkl_path_to_set(output_pkl_path)
+        output_set = pkl_loader(output_pkl_path)
 
         assert output_set == test_pmids

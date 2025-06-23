@@ -61,11 +61,11 @@ def find_pmids(
     return pmids
 
 
-def pkl_path_to_set(pkl_file_path: str) -> set:
-    """This function takes the file path of a .pkl file loaded with a set
-    and returns a set object"""
+def pkl_loader(pkl_file_path: str) -> object:
+    """This function takes the file path of a .pkl file loaded with a python object
+    and returns that object"""
 
     with open(pkl_file_path, "rb") as file:
-        output_set = pickle.load(file)
+        output = pickle.load(file)
 
-    return output_set
+    return output

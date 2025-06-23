@@ -10,7 +10,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from tqdm import tqdm
 
-from utils import pkl_path_to_set
+from scripts.utils import pkl_loader
 
 
 def _get_pmcid(pmid: str) -> Optional[str]:
@@ -110,7 +110,7 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_batch_size: int):
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    all_pmids: set = pkl_path_to_set(pkl_file_path)
+    all_pmids: set = pkl_loader(pkl_file_path)
 
     if dl_batch_size == 0:
         dl_batch_size = len(all_pmids)
