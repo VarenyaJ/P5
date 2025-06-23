@@ -73,7 +73,7 @@ class Phenopacket:
         if not os.path.isfile(path):
             raise FileNotFoundError(f"No such file: {path}")
         with open(path, "r", encoding="utf-8") as f:
-            data = json.load_from_file(f)
+            data = json.load(f)
         return cls(data)
 
     def contains_phenotype(self, hpo_label: str) -> bool:
