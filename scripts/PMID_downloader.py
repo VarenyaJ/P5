@@ -96,7 +96,7 @@ OUTPUT: a directory containing the corresponding PDFs of the journal articles
 
 PKL_FILE_PATH:     the file path for the .pkl file
 PDF_OUTPUT_DIR:    directory to dump the PDFs
-DL_BATCH_SIZE:     the maximum amount of PDFs that we would like to download. If set to 0, the entire collection of PDFs will be downloaded
+DL_CUT_OFF:     the maximum amount of PDFs that we would like to download. If set to 0, the entire collection of PDFs will be downloaded
 
 Example: 
 data/pmids.pkl      data/pmid_pdfs      50
@@ -104,26 +104,26 @@ data/pmids.pkl      data/pmid_pdfs      50
 )
 @click.argument("pkl_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-@click.argument("dl_batch_size", type=int)
-def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_batch_size: int):
+@click.argument("dl_cut_off", type=int)
+def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
     all_pmids: set = pkl_loader(pkl_file_path)
 
-    if dl_batch_size == 0:
-        dl_batch_size = len(all_pmids)
+    if dl_cut_off == 0:
+        dl_cut_off = len(all_pmids)
 
-    if dl_batch_size > len(all_pmids):
+    if dl_cut_off > len(all_pmids):
         click.secho(
-            message=f"Requested download batch size of {dl_batch_size} greater than number of PMIDs in {pkl_file_path}. Attempting to download all {len(all_pmids)} PMIDs.",
+            message=f"Requested download cut-off size of {dl_cut_off} greater than number of PMIDs in {pkl_file_path}. Attempting to download all {len(all_pmids)} PMIDs.",
             fg="yellow",
         )
-        dl_batch_size = len(all_pmids)
+        dl_cut_off = len(all_pmids)
 
     pmid_batch: set = set(
-        list(all_pmids)[0:dl_batch_size]
+        list(all_pmids)[:dl_cut_off]
     )  # entries of the form "PMID_1234567"
 
     with tqdm(total=len(pmid_batch)) as progress_bar:
@@ -137,9 +137,9 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_batch_size: int):
             download_pdf(pmcid, pmid, pdf_out_dir)
             progress_bar.update(1)
 
-        no_of_pdfs = len(os.listdir(pdf_out_dir))
+        pdf_count = len(os.listdir(pdf_out_dir))
         progress_bar.set_description(
-            f"Processing of {str(len(pmid_batch))} PMIDs complete. {no_of_pdfs} PDFs successfully downloaded."
+            f"Processing of {str(len(pmid_batch))} PMIDs complete. {pdf_count} PDFs successfully downloaded."
         )
 
 

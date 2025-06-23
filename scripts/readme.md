@@ -1,19 +1,7 @@
-### Pull Test data
-To get the test data run the following scripts in order:
-
-To pull the summaries of PubMed cases run:
-```shell
-python -m scripts.pull_git_files "data/tmp/phenopacket_store" "https://github.com/P2GX/phenopacket2prompt" "docs/cases/"
-```
-
-To pull the test phenopackets run:
+### Pull phenopackets
+To pull all the phenopackets from Phenopacket store run:
 ```shell
 python -m scripts.pull_git_files "data/tmp/phenopacket_store" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
-```
-
-To filter the phenopackets by the cases use:
-```shell
-python -m scripts.create_phenopacket_dataset "./data/tmp/phenopacket_store/cases" "./data/tmp/phenopacket_store/notebooks" "./data/tmp/phenopacket_store/phenopacket_dataset.csv" --recursive_ground_truth_dir True
 ```
 
 ### create_pmid_pkl script
@@ -30,6 +18,24 @@ Run:
 python -m scripts.PMID_downloader "data/tmp/phenopacket_store/pmids.pkl" "data/tmp/phenopacket_store/pmid_pdfs" "20"
 ```
 For every PMID in the .pkl file, a PDF will be downloaded to the directory *data/tmp/phenopacket_store/pmid_pdfs* whenever this is possible (i.e. whenever there is a valid PMCID). 
+
+### Create LLM output files <span style="color:orange">(DOES NOT EXIST YET... OUTPUT FILES = E.G. HPO TERMS OR PHENOPACKETS)</span>
+
+Run: 
+```shell
+python -m scripts.llm_output "data/tmp/phenopacket_store/pmid_pdfs" "data/tmp/phenopacket_store/llm_output_dir"
+```
+
+Uses the script file_to_phenopacket to take every PDF in the folder and pmid_pdfs and outputs some sort of LLM generated response to files named PMID_1234567.something
+
+### Create "Real Phenopacket VS LLM Output" comparison table
+
+Create a CSV file with columns *PMID, LLM output file path, phenopacket file path* whenever we have a LLM output VS real phenopacket pair.
+```shell
+python -m scripts.create_phenopacket_dataset "data/tmp/phenopacket_store/notebooks" "data/tmp/phenopacket_store/llm_output_dir" "./data/tmp/phenopacket_store/phenopacket_dataset.csv" --recursive_ground_truth_dir True
+```
+
+# <span style="color:orange">BELOW NOT CURRENTLY PART OF THE PIPELINE</span>
 
 ### File to Phenopacket Script
 Make sure ollama is installed on your machine and your env. Start the server.
