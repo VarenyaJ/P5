@@ -44,12 +44,14 @@ def find_pmids(
         for filename in file_names:
             matches = re.findall(pmid_regex, filename)
 
-            if len(matches) != 1:
+            if len(matches) > 1:
                 click.secho(
                     f"Warning: Found more than one PMID ({matches}) in {filename}. ",
                     fg="yellow",
                     bold=True,
                 )
+                continue
+            elif len(matches) == 0:
                 continue
 
             pmids.add(matches[0])
