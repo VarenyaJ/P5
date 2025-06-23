@@ -13,6 +13,7 @@ import pickle
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
+
 @pytest.fixture()
 def pdf_bytes() -> bytes:
     return (
@@ -35,13 +36,16 @@ def pdf_bytes() -> bytes:
         b"trailer\n<< /Root 1 0 R /Size 6 >>\nstartxref\n401\n%%EOF"
     )
 
+
 @pytest.fixture()
 def test_pmids_with_pdf() -> set:
     return {"PMID_8755636", "PMID_20089953"}
 
+
 @pytest.fixture()
 def test_pmids_no_pdf() -> set:
     return {"PMID_16636245", "PMID_19458539"}
+
 
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 def test_pmid_downloader(test_pmids, request):
