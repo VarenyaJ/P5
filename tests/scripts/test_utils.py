@@ -19,7 +19,7 @@ def pmids():
 )
 def test_find_pmids(recursive: bool, expected_pmids: set[str], pmids: set[str]):
     """
-    .
+    tmp
     ├── CMbQa
     │ └── phenopackets
     │     ├── PMID_8800795_PMID_8800795_0.json
@@ -54,7 +54,13 @@ def test_find_pmids(recursive: bool, expected_pmids: set[str], pmids: set[str]):
 
 
 def test_find_pmids_no_files_early_return(pmids: set[str]):
-
+    """
+    tmp
+    └── some_dir
+        ├── NO_ID.json
+        ├── PMID_7803799.json
+        ├── PMID_8800795.json
+    """
     with tempfile.TemporaryDirectory() as tmp_dir:
         save_dir = pathlib.Path(f"{tmp_dir}/some_dir")
         save_dir.mkdir(parents=True, exist_ok=True)
