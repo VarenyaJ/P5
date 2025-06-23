@@ -61,7 +61,7 @@ def find_pmids(
     return pmids
 
 
-def pkl_loader(pkl_file_path: str) -> Any:
+def pkl_loader(pkl_file_path: str) -> any:
     """This function takes the file path of a .pkl file loaded with a python object
     and returns that object"""
 
