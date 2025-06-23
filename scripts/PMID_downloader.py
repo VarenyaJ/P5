@@ -9,13 +9,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from tqdm import tqdm
 
-from scripts.utils import pkl_to_set
+from scripts.utils import pkl_path_to_set
 
 
 def _get_pmcid(pmid: str) -> Optional[str]:
-    """This function uses the PubMed API called Entrez to get a PMCID from a PMID.
-    Once we have a PMCID we can use that to get the URL of a PDF.
-    """
+    """This function uses the PubMed API called Entrez to get a PMCID from a PMID."""
     Entrez.email = "fake.email@email.de"
 
     with Entrez.elink(
@@ -32,11 +30,11 @@ def _get_pmcid(pmid: str) -> Optional[str]:
 
 def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
     """
-    this takes a PMCID of a PubMed article
-    guesses the URL of the PDF
-    uses Selenium to avoid anti-web-scraping JavaScript challenges
-    and then downloads the PDF using requests
-    we need to use the cookies of the Selenium browser and pause for 5 seconds to trick the webpage
+    This function
+    1. takes a PMCID of a PubMed article
+    2. guesses the URL of the associated PDF
+    3. uses a Selenium browser to pause for a few seconds in order to bypass Javascript anti-web-scraping challenges
+    4. the cookies of the browser are then used to download the PDF using requests
     """
 
     try:
@@ -96,7 +94,7 @@ OUTPUT: a directory containing the corresponding PDFs of the journal articles
 (whenever they are accessible via PubMed Central).
 
 PKL_FILE_PATH:     the file path for the .pkl file
-PDF_OUTPUT_DIR:     where you want the directory containing the PDFs to be located
+PDF_OUTPUT_DIR:    directory to dump the PDFs
 
 Example: 
 data/pmids.pkl      data/pmid_pdfs, 
@@ -109,7 +107,7 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str):
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids: set = pkl_to_set(pkl_file_path)  # entries of the form "PMID_1234567"
+    pmids: set = pkl_path_to_set(pkl_file_path)  # entries of the form "PMID_1234567"
 
     with tqdm(total=len(pmids)) as progress_bar:
         for pmid in pmids:

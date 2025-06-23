@@ -11,7 +11,7 @@ from scripts.utils import find_pmids
 This takes a directory as an input, searches for strings of the form PMID_{1-8 digits} among the file names
 and writes those PMIDS to a .pkl file. 
 
-PMID_DIRECTORY:            The directory where you want to search for PMIDs among the file names.
+PMID_DIRECTORY:            Directory whose file names will be searched for PMIDs
 PKL_FILE_PATH:             The file path of the .pkl file which will contain those PMIDs as a set.
 RECURSIVE DIR SEARCH:      If True then the search through PMID_directory looks through subdirectories.
 
@@ -20,8 +20,10 @@ assets/cases assets/pmids.pkl
 """
 )
 @click.argument("pmid_directory", type=click.Path(exists=True, dir_okay=True))
-@click.argument("pkl_file_path", type=click.Path(exists=False))
-@click.option("--recursive_dir_search", is_flag=True, default=True)
+@click.argument(
+    "pkl_file_path", type=click.Path(exists=False, file_okay=True, dir_okay=False)
+)
+@click.option("--recursive_dir_search", is_flag=True, default=False)
 def create_pmid_pkl(
     pmid_directory: str, pkl_file_path: str, recursive_dir_search: bool
 ):
