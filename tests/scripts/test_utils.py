@@ -10,7 +10,7 @@ from scripts.utils import find_pmids
 
 @pytest.fixture()
 def pmids():
-    return {"PMID_7803799", "PMID_8800795"}
+    return {"PMID_7803799", "PMID_8800795", "NO_ID", "PMID_8800795_PMID_8800795"}
 
 
 @pytest.mark.parametrize(
@@ -18,6 +18,25 @@ def pmids():
     [(True, {"PMID_7803799", "PMID_8800795"}), (False, set())],
 )
 def test_find_pmids(recursive: bool, expected_pmids: set[str], pmids: set[str]):
+    """
+    .
+    ├── CMbQa
+    │ └── phenopackets
+    │     ├── PMID_8800795_PMID_8800795_0.json
+    │     └── PMID_8800795_PMID_8800795_1.json
+    ├── fCYOP
+    │ └── phenopackets
+    │     ├── NO_ID_0.json
+    │     └── NO_ID_1.json
+    ├── KqyzJ
+    │ └── phenopackets
+    │     ├── PMID_7803799_0.json
+    │     └── PMID_7803799_1.json
+    └── gDLpM
+        └── phenopackets
+            ├── PMID_8800795_0.json
+            └── PMID_8800795_1.json
+    """
     packet_dirs = [
         "".join(random.choice(string.ascii_letters) for _ in range(5)) for _ in pmids
     ]
