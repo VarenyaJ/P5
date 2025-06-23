@@ -33,7 +33,7 @@ def test_pmid_downloader(test_pmids, request):
         output_dir = tmp_dir + "/output_pdfs"
 
         runner = CliRunner()
-        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir])
+        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
         assert (
             result.exit_code == 0
@@ -88,7 +88,7 @@ def test_PMID_downloader_with_pmcid_mocked(
         output_dir = tmp_dir + "/output_pdfs"
 
         runner = CliRunner()
-        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir])
+        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
         assert (
             result.exit_code == 0
@@ -130,7 +130,7 @@ def test_PMID_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request
         output_dir = tmp_dir + "/output_pdfs"
 
         runner = CliRunner()
-        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir])
+        result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
         assert (
             result.exit_code == 0

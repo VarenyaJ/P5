@@ -1,3 +1,4 @@
+import os
 import time
 from pathlib import Path
 from typing import Optional
@@ -9,7 +10,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from tqdm import tqdm
 
-from scripts.utils import pkl_path_to_set
+from utils import pkl_path_to_set
 
 
 def _get_pmcid(pmid: str) -> Optional[str]:
@@ -95,22 +96,38 @@ OUTPUT: a directory containing the corresponding PDFs of the journal articles
 
 PKL_FILE_PATH:     the file path for the .pkl file
 PDF_OUTPUT_DIR:    directory to dump the PDFs
+DL_BATCH_SIZE:     the maximum amount of PDFs that we would like to download. If set to 0, the entire collection of PDFs will be downloaded
 
 Example: 
-data/pmids.pkl      data/pmid_pdfs, 
+data/pmids.pkl      data/pmid_pdfs      50
 """
 )
 @click.argument("pkl_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-def pmid_downloader(pkl_file_path: str, pdf_out_dir: str):
+@click.argument("dl_batch_size", type=int)
+def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_batch_size: int):
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids: set = pkl_path_to_set(pkl_file_path)  # entries of the form "PMID_1234567"
+    all_pmids: set = pkl_path_to_set(pkl_file_path)
 
-    with tqdm(total=len(pmids)) as progress_bar:
-        for pmid in pmids:
+    if dl_batch_size == 0:
+        dl_batch_size = len(all_pmids)
+
+    if dl_batch_size > len(all_pmids):
+        click.secho(
+            message=f"Requested download batch size of {dl_batch_size} greater than number of PMIDs in {pkl_file_path}. Attempting to download all {len(all_pmids)} PMIDs.",
+            fg="yellow",
+        )
+        dl_batch_size = len(all_pmids)
+
+    pmid_batch: set = set(
+        list(all_pmids)[0:dl_batch_size]
+    )  # entries of the form "PMID_1234567"
+
+    with tqdm(total=len(pmid_batch)) as progress_bar:
+        for pmid in pmid_batch:
             progress_bar.set_description(f"Processing {pmid}")
             pmcid: str = _get_pmcid(pmid)  # of the form "1234567"
             if pmcid is None:
@@ -119,7 +136,11 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str):
                 continue
             download_pdf(pmcid, pmid, pdf_out_dir)
             progress_bar.update(1)
-        progress_bar.set_description(f"Processing of {str(len(pmids))} PMIDs complete.")
+
+        no_of_pdfs = len(os.listdir(pdf_out_dir))
+        progress_bar.set_description(
+            f"Processing of {str(len(pmid_batch))} PMIDs complete. {no_of_pdfs} PDFs successfully downloaded."
+        )
 
 
 if __name__ == "__main__":

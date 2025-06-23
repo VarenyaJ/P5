@@ -1,9 +1,7 @@
 import click
 import pickle
 
-from sympy.logic.boolalg import Boolean
-
-from scripts.utils import find_pmids
+from utils import find_pmids
 
 
 @click.command(
@@ -29,6 +27,9 @@ def create_pmid_pkl(
 ):
 
     pmid_set = find_pmids(pmid_directory, recursive_dir_search)
+    click.secho(
+        message=f"{len(pmid_set)} PMIDs found within {pmid_directory}", fg="green"
+    )
 
     with open(pkl_file_path, "wb") as file:
         pickle.dump(pmid_set, file)
