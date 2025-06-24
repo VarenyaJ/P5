@@ -5,6 +5,8 @@ from typing import Union, Optional
 
 import click
 
+import pickle
+
 pmid_regex = re.compile(r"PMID_\d{1,8}")
 
 
@@ -57,3 +59,13 @@ def find_pmids(
             return pmids
 
     return pmids
+
+
+def pkl_loader(pkl_file_path: str) -> any:
+    """This function takes the file path of a .pkl file loaded with a python object
+    and returns that object"""
+
+    with open(pkl_file_path, "rb") as file:
+        output = pickle.load(file)
+
+    return output

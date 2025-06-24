@@ -1,3 +1,4 @@
+import os
 import time
 from pathlib import Path
 from typing import Optional
@@ -9,13 +10,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from tqdm import tqdm
 
-from scripts.utils import find_pmids
+from scripts.utils import pkl_loader
 
 
 def _get_pmcid(pmid: str) -> Optional[str]:
-    """This function uses the PubMed API called Entrez to get a PMCID from a PMID.
-    Once we have a PMCID we can use that to get the URL of a PDF.
-    """
+    """This function uses the PubMed API called Entrez to get a PMCID from a PMID."""
     Entrez.email = "fake.email@email.de"
 
     with Entrez.elink(
@@ -32,11 +31,11 @@ def _get_pmcid(pmid: str) -> Optional[str]:
 
 def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
     """
-    this takes a PMCID of a PubMed article
-    guesses the URL of the PDF
-    uses Selenium to avoid anti-web-scraping JavaScript challenges
-    and then downloads the PDF using requests
-    we need to use the cookies of the Selenium browser and pause for 5 seconds to trick the webpage
+    This function
+    1. takes a PMCID of a PubMed article
+    2. guesses the URL of the associated PDF
+    3. uses a Selenium browser to pause for a few seconds in order to bypass Javascript anti-web-scraping challenges
+    4. the cookies of the browser are then used to download the PDF using requests
     """
 
     try:
@@ -91,36 +90,57 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
 
 @click.command(
     help="""
-Takes a directory to find PMIDs and downloads the corresponding PDFs from PubMed (whenever they are accessible via PubMed Central).
+INPUT: a .pkl file whose entries are strings of the form "PMID_1234567" 
+OUTPUT: a directory containing the corresponding PDFs of the journal articles 
+(whenever they are accessible via PubMed Central).
 
-PMID_FILE_PATH:     Directory where PMID files are located.
-PDF_OUTPUT_DIR:     Ouput directory where PMID PDFs will be written.
+PKL_FILE_PATH:     the file path for the .pkl file
+PDF_OUTPUT_DIR:    directory to dump the PDFs
+DL_CUT_OFF:     the maximum amount of PDFs that we would like to download. If set to 0, the entire collection of PDFs will be downloaded
 
 Example: 
-data/pmid_list.txt      data/pmid_pdfs, 
+data/pmids.pkl      data/pmid_pdfs      50
 """
 )
-@click.argument("pmid_file_path", type=click.Path(exists=True))
+@click.argument("pkl_file_path", type=click.Path(exists=True))
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
-@click.option("--recursive_dir_search", type=click.BOOL, default=True)
-def pmid_downloader(pmid_file_path: str, pdf_out_dir: str, recursive_dir_search: bool):
+@click.argument("dl_cut_off", type=int)
+def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
 
-    pmids = find_pmids(pmid_file_path, recursive=recursive_dir_search)
+    all_pmids: set = pkl_loader(pkl_file_path)
 
-    with tqdm(total=len(pmids)) as progress_bar:
-        for pmid in pmids:
+    if dl_cut_off == 0:
+        dl_cut_off = len(all_pmids)
+
+    if dl_cut_off > len(all_pmids):
+        click.secho(
+            message=f"Requested download cut-off size of {dl_cut_off} greater than number of PMIDs in {pkl_file_path}. Attempting to download all {len(all_pmids)} PMIDs.",
+            fg="yellow",
+        )
+        dl_cut_off = len(all_pmids)
+
+    pmid_batch: set = set(
+        list(all_pmids)[:dl_cut_off]
+    )  # entries of the form "PMID_1234567"
+
+    with tqdm(total=len(pmid_batch)) as progress_bar:
+        for pmid in pmid_batch:
             progress_bar.set_description(f"Processing {pmid}")
-            pmcid = _get_pmcid(pmid)
+            pmcid: str = _get_pmcid(pmid)  # of the form "1234567"
             if pmcid is None:
                 click.secho(message=f"No PMCID found for {pmid}.", fg="yellow")
                 progress_bar.update(1)
                 continue
             download_pdf(pmcid, pmid, pdf_out_dir)
             progress_bar.update(1)
-        progress_bar.set_description(f"Processing of {str(len(pmids))} PMIDs complete.")
+
+        pdf_count = len(os.listdir(pdf_out_dir))
+        progress_bar.set_description(
+            f"Processing of {str(len(pmid_batch))} PMIDs complete. {pdf_count} PDFs successfully downloaded."
+        )
 
 
 if __name__ == "__main__":
