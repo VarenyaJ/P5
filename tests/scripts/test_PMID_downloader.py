@@ -81,10 +81,10 @@ def test_pmid_downloader(test_pmids, request):
         for pdf in pdf_file_names:
             converter.convert(f"{output_dir}/{pdf}")
 
-        # asserts that each pdf is at least 1kb
+        # expected PDF has file size ≈ 204,000 bytes
+        min_valid_pdf_bytes = 200000
         for pdf in pdf_file_names:
-            # expected PDF has file size ≈ 204,000 bytes
-            assert os.path.getsize(f"{output_dir}/{pdf}") >= 200000
+            assert os.path.getsize(f"{output_dir}/{pdf}") >= min_valid_pdf_bytes
 
 
 @mock.patch("scripts.PMID_downloader.Entrez")
