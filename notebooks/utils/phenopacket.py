@@ -1,182 +1,208 @@
-# P5/notebooks/utils/phenopacket.py
-
 import json
 import logging
 import os
 from typing import Any, List
 
+from google.protobuf.json_format import ParseDict, ParseError
+from phenopackets import Phenopacket as ProtoPhenopacket
+
 logger = logging.getLogger(__name__)
 
 
 class InvalidPhenopacketError(ValueError):
-  """Raised when a given JSON does not conform to minimal phenopacket expectations."""
+    """
+    Exception raised when a JSON payload does not conform to minimal
+    Phenopacket expectations.
+    """
 
 
 class Phenopacket:
-  """
-  A helper for loading and querying GA4GH Phenopacket JSON files.
-  """
-  # CHANGED: moved all details into init
+    """
+    Helper for loading and querying GA4GH Phenopacket JSON files.
 
-  def __init__(self, phenopacket_json: dict[str, Any]):
-      """
-      Initialize from a JSON-decoded dict.
+    Wraps the Protobuf-based Phenopacket model from the `phenopackets` package,
+    providing minimal on-disk loading, basic schema validation via Protobuf,
+    and simple phenotype queries.
+    """
 
-      Parameters
-      ----------
-      phenopacket_json : dict
-          Parsed JSON object for a phenopacket.
-          A valid phenopacket must be a dict containing:
-          - "phenotypicFeatures": a list of feature objects, each with a "type" dict:
-              {
-                "id": "HP:0000001",
-                "label": "Phenotype label"
-              }
+    def __init__(self, phenopacket_json: dict[str, Any]) -> None:
+        """
+        Initialize Phenopacket from a JSON-decoded dictionary.
 
-      Raises
-      ------
-      InvalidPhenopacketError
-          If the input is not a dict or phenotypicFeatures is malformed.
-      """
+        Performs minimal structural validation (presence and type of
+        `phenotypicFeatures`) before storing the raw dictionary for
+        downstream queries.
 
-      self._validate_structure(phenopacket_json)
-      self._json: dict[str, Any] = phenopacket_json
-      self._phenotypicFeatures: List[dict[str, Any]] = phenopacket_json["phenotypicFeatures"]
+        Parameters
+        ----------
+        phenopacket_json : dict
+            A JSON-decoded dict representing a GA4GH Phenopacket. It must
+            contain a key `"phenotypicFeatures"` mapped to a list of feature
+            objects, each of which should be a dict with at least:
 
-  @staticmethod
-  def _validate_structure(data: dict[str, Any]) -> None:
-      """ Minimal schema checks extracted from __init__; Raises InvalidPhenopacketError on failure. """
-      if not isinstance(data, dict):
-          raise InvalidPhenopacketError("Phenopacket JSON must be a dict.")
-      features = data.get("phenotypicFeatures", [])
-      if not isinstance(features, list):
-          raise InvalidPhenopacketError("`phenotypicFeatures` must be a list.")
-      # - All other validation can be centralized here per Rouven's suggestion.
+            {
+                "type": {
+                    "id": "<HPO:NNNNNNN>",
+                    "label": "<Phenotype Label>"
+                }
+            }
 
-  @classmethod
-  def load_from_file(cls, path: str) -> "Phenopacket":
-      """
-      Parameters
-      ----------
-      path : str
-          Path to a .json file containing a GA4GH phenopacket.
+        Raises
+        ------
+        InvalidPhenopacketError
+            If `phenopacket_json` is not a dict or if
+            `"phenotypicFeatures"` is missing or not a list.
+        """
+        self._validate_structure(phenopacket_json)
+        self._json: dict[str, Any] = phenopacket_json
+        self._phenotypicFeatures: List[dict[str, Any]] = phenopacket_json[
+            "phenotypicFeatures"
+        ]
 
-      Returns
-      -------
-      Phenopacket
-          Instance wrapping the loaded JSON.
+    @staticmethod
+    def _validate_structure(data: dict[str, Any]) -> None:
+        """
+        Validate minimal Phenopacket JSON schema.
 
-      Raises
-      ------
-      FileNotFoundError
-          If the given path does not exist.
-      json.JSONDecodeError
-          If the file cannot be parsed as JSON.
-      InvalidPhenopacketError
-          If the loaded JSON has the wrong structure.
-      """
+        Ensures the top-level object is a dict and that its
+        `"phenotypicFeatures"` entry, if present, is a list.
 
-      # CHANGED: removed explicit os.path.isfile check; open()/json.load() will raise if missing or invalid
-      with open(path, "r", encoding="utf-8") as f:
-          data = json.load(f)
-      return cls(data)
+        Parameters
+        ----------
+        data : dict
+            The JSON-decoded dict to validate.
 
-  def contains_phenotype(self, hpo_label: str) -> bool:
-      """
-      Check for presence of a phenotype by its human-readable label.
+        Raises
+        ------
+        InvalidPhenopacketError
+            If `data` is not a dict or if its `"phenotypicFeatures"`
+            entry exists and is not a list.
+        """
+        if not isinstance(data, dict):
+            raise InvalidPhenopacketError("Phenopacket JSON must be a dict.")
+        features = data.get("phenotypicFeatures", [])
+        if not isinstance(features, list):
+            raise InvalidPhenopacketError("`phenotypicFeatures` must be a list.")
 
-      Parameters
-      ----------
-      hpo_label : str
-          The `type.label` of the phenotype to search for.
+    @classmethod
+    def load_from_file(cls, path: str) -> "Phenopacket":
+        """
+        Load and validate a Phenopacket from a JSON file on disk.
 
-      Returns
-      -------
-      bool
-          True if any feature has a matching label, False otherwise.
-      """
-      # CHANGED: simplified to single line, using list_phenotypes()
-      return hpo_label in self.list_phenotypes()
+        Reads the file at `path`, parses it as JSON, then invokes Protobuf's
+        `ParseDict` to enforce the full GA4GH schema. If parsing succeeds,
+        the raw dict is passed to `__init__` for minimal structural checks.
 
-  def contains_phenotype_id(self, hpo_id: str) -> bool:
-      """
-      Check for presence by exact HPO identifier.
+        Parameters
+        ----------
+        path : str
+            Filesystem path to a `.json` file containing a GA4GH Phenopacket.
 
-      Parameters
-      ----------
-      hpo_id : str
-          The `type.id` of the phenotype to search for (e.g. "HP:0001250").
+        Returns
+        -------
+        Phenopacket
+            An initialized Phenopacket instance.
 
-      Returns
-      -------
-      bool
-          True if any feature has a matching id, False otherwise.
-      """
-      return any(
-          isinstance(feat, dict)
-          and isinstance(feat.get("type"), dict)
-          and feat["type"].get("id") == hpo_id
-          for feat in self._phenotypicFeatures
-      )
+        Raises
+        ------
+        FileNotFoundError
+            If no file exists at `path`.
+        InvalidPhenopacketError
+            If JSON parsing fails or the Protobuf schema validation fails.
+        """
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"No such file: {path}")
 
-  @property
-  def count_phenotypes(self) -> int:
-      """
-      Get the number of phenotypic features, reutrn an `int` length of the `phenotypicFeatures` list.
-      """
-      return len(self._phenotypicFeatures)
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
 
-  def list_phenotypes(self) -> List[str]:
-      """
-      List all human-readable phenotype labels in a phenopacket.
+        try:
+            # Full schema validation via Protobuf
+            _ = ParseDict(data, ProtoPhenopacket())
+        except ParseError as e:
+            raise InvalidPhenopacketError(f"Failed to parse phenopacket: {e}")
 
-      Returns
-      -------
-      List[str]
-          The `type.label` of each feature, skipping malformed entries.
-      """
-      labels: List[str] = []
-      for feat in self._phenotypicFeatures:
-          term = feat.get("type")
-          if isinstance(term, dict) and "label" in term:
-              labels.append(term["label"])
-          else:
-              logger.warning(
-                  "Skipping malformed phenotypicFeature: missing `type.label`"
-              )
-      return labels
+        # Hand the validated dict to our constructor
+        return cls(data)
 
-  def to_json(self) -> dict[str, Any]:
-      """
-      Return the original JSON dict.
+    def contains_phenotype(self, hpo_label: str) -> bool:
+        """
+        Check for the presence of a phenotype by its human-readable label.
 
-      Returns
-      -------
-      dict
-          The raw JSON object loaded at init.
-      """
-      return self._json
+        Parameters
+        ----------
+        hpo_label : str
+            The HPO term's `label` to search for (e.g. "Short stature").
 
-  def __repr__(self) -> str:
-      return f"<Phenopacket phenotypes={self.count_phenotypes}>"
+        Returns
+        -------
+        bool
+            True if any phenotypic feature's `type.label` matches exactly,
+            False otherwise.
+        """
+        return hpo_label in self.list_phenotypes()
 
-  def __str__(self) -> str:
-      """
-      Human-friendly string for printing.
+    @property
+    def count_phenotypes(self) -> int:
+        """
+        Number of phenotypic features in the packet.
 
-      Returns
-      -------
-      str
-          e.g. "Phenopacket with 3 phenotypic features"
-      """
-      c = self.count_phenotypes
+        Returns
+        -------
+        int
+            The length of the `"phenotypicFeatures"` list.
+        """
+        return len(self._phenotypicFeatures)
 
-      # CHANGED: Add explicit zero case
-      if c == 0:
-          return "Phenopacket with no phenotypic features"
-      return f"Phenopacket with {c} phenotypic feature{'s' if c != 1 else ''}"
+    def list_phenotypes(self) -> List[str]:
+        """
+        List all human-readable phenotype labels in this packet.
 
-  #
+        Iterates over each feature in `"phenotypicFeatures"` and extracts
+        the `type.label` string.
+
+        Returns
+        -------
+        List[str]
+            A list of phenotype labels, in insertion order.
+        """
+        labels: List[str] = []
+        for feat in self._phenotypicFeatures:
+            term = feat.get("type")
+            if isinstance(term, dict) and "label" in term:
+                labels.append(term["label"])
+        return labels
+
+    def to_json(self) -> dict[str, Any]:
+        """
+        Retrieve the original JSON dictionary.
+
+        Returns
+        -------
+        dict
+            The exact dict passed to `__init__`.
+        """
+        return self._json
+
+    def __repr__(self) -> str:
+        return f"<Phenopacket phenotypes={self.count_phenotypes}>"
+
+    def __str__(self) -> str:
+        """
+        Human-friendly summary of this Phenopacket.
+
+        Returns
+        -------
+        str
+            A string like "Phenopacket with 3 phenotypic features", or
+            "Phenopacket with no phenotypic features" if count is zero.
+        """
+        c = self.count_phenotypes
+        if c == 0:
+            return "Phenopacket with no phenotypic features"
+        return f"Phenopacket with {c} phenotypic feature{'s' if c != 1 else ''}"
+
+    #
 
 
 #
