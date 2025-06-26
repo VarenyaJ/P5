@@ -85,7 +85,3 @@ def test_invalid_structure_raises(bad_input):
     """
     with pytest.raises(InvalidPhenopacketError):
         Phenopacket(bad_input)
-    #
-
-
-#
