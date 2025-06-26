@@ -74,7 +74,6 @@ def test_invalid_structure_raises(bad_input):
     bad_input : Any
         A malformed JSON payload to pass to the constructor.
     -------
-    Raises InvalidPhenopacketError for each malformed input.
     """
     with pytest.raises(InvalidPhenopacketError):
         Phenopacket(bad_input)
