@@ -86,8 +86,7 @@ class Phenopacket:
         InvalidPhenopacketError
             If JSON parsing fails or the Protobuf schema validation fails.
         """
-        if not os.path.isfile(path):
-            raise FileNotFoundError(f"No such file: {path}")
+        # CHANGED: Removed explicit os.path.isfile check because `open(path)` raises FileNotFoundError already
 
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
