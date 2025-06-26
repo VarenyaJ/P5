@@ -6,6 +6,8 @@ from typing import Any, List
 from google.protobuf.json_format import ParseDict, ParseError
 from phenopackets import Phenopacket as ProtoPhenopacket
 
+import copy
+
 logger = logging.getLogger(__name__)
 
 
@@ -150,14 +152,10 @@ class Phenopacket:
 
     def to_json(self) -> dict[str, Any]:
         """
-        Retrieve the original JSON dictionary.
-
-        Returns
-        -------
-        dict
-            The exact dict passed to `__init__`.
+        Return a deep copy of the original JSON dict to avoid external mutations
         """
-        return self._json
+        # CHANGED: Returning the exact same dict/internal state allows for accidental mutation
+        return copy.deepcopy(self._json)
 
     def __repr__(self) -> str:
         return f"<Phenopacket phenotypes={self.count_phenotypes}>"
