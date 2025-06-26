@@ -1,2 +1,4 @@
 ollama==0.5.1
 docling==2.36.1
+phenopackets>=2.0
+protobuf>=3.0
