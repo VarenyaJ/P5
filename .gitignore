@@ -202,6 +202,3 @@ cython_debug/
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-
-/data/tmp/.idea/P5.iml
-.idea/misc.xml
