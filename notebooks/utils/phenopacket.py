@@ -162,13 +162,7 @@ class Phenopacket:
 
     def __str__(self) -> str:
         """
-        Human-friendly summary of this Phenopacket.
-
-        Returns
-        -------
-        str
-            A string like "Phenopacket with 3 phenotypic features", or
-            "Phenopacket with no phenotypic features" if count is zero.
+        Output a Human-friendly summary of this Phenopacket if count is zero.
         """
         c = self.count_phenotypes
         if c == 0:
