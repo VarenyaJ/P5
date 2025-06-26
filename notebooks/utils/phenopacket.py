@@ -1,20 +1,17 @@
 import json
+import copy
 import logging
 import os
 from typing import Any, List
-
 from google.protobuf.json_format import ParseDict, ParseError
 from phenopackets import Phenopacket as ProtoPhenopacket
-
-import copy
 
 logger = logging.getLogger(__name__)
 
 
 class InvalidPhenopacketError(ValueError):
     """
-    Exception raised when a JSON payload does not conform to minimal
-    Phenopacket expectations.
+    Exception raised when a JSON payload does not conform to minimal Phenopacket expectations.
     """
 
 
@@ -22,9 +19,7 @@ class Phenopacket:
     """
     Helper for loading and querying GA4GH Phenopacket JSON files.
 
-    Wraps the Protobuf-based Phenopacket model from the `phenopackets` package,
-    providing minimal on-disk loading, basic schema validation via Protobuf,
-    and simple phenotype queries.
+    Wraps the Protobuf-based Phenopacket model from the `phenopackets` package, providing minimal on-disk loading, basic schema validation via Protobuf, and simple phenotype queries.
     """
 
     def __init__(self, phenopacket_json: dict[str, Any]) -> None:
@@ -55,7 +50,17 @@ class Phenopacket:
             If `phenopacket_json` is not a dict or if
             `"phenotypicFeatures"` is missing or not a list.
         """
-        # CHANGED: Introduced two separate validation mechanisms. No longer need the custom '_validate_structure' as 'google.protobuf.json_format' has 'ParseDict' and 'ParseError'
+        # CHANGED: re-add minimal validation
+        # What: Check that the input is a dict and that
+        #       'phenotypicFeatures' exists and is a list.
+        # Where: __init__, before assigning self._json
+        # Why: Tests expect InvalidPhenopacketError for non-dict or bad list.
+        if not isinstance(phenopacket_json, dict):
+            raise InvalidPhenopacketError("Phenopacket JSON must be a dict.")
+        phen_feats = phenopacket_json.get("phenotypicFeatures")
+        if not isinstance(phen_feats, list):
+            raise InvalidPhenopacketError("`phenotypicFeatures` must be a list.")
+
         self._json = phenopacket_json
         # We assume the Protobuf-validated dict always has this key:
         self._phenotypicFeatures: List[dict[str, Any]] = phenopacket_json[
@@ -143,12 +148,11 @@ class Phenopacket:
         List[str]
             A list of phenotype labels, in insertion order.
         """
-        labels: List[str] = []
-        for feat in self._phenotypicFeatures:
-            term = feat.get("type")
-            if isinstance(term, dict) and "label" in term:
-                labels.append(term["label"])
-        return labels
+        # CHANGED: lean on Protobuf guarantees
+        # What: Simplified to a comprehension without defensive guards
+        # Where: list_phenotypes
+        # Why: After Protobuf & constructor validation, `.type.label` must exist
+        return [feat["type"]["label"] for feat in self._phenotypicFeatures]
 
     def to_json(self) -> dict[str, Any]:
         """

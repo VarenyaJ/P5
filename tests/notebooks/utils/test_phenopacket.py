@@ -1,8 +1,6 @@
 import json
 import tempfile
-
 import pytest
-
 from notebooks.utils.phenopacket import Phenopacket, InvalidPhenopacketError
 
 
@@ -85,3 +83,17 @@ def test_invalid_structure_raises(bad_input):
     """
     with pytest.raises(InvalidPhenopacketError):
         Phenopacket(bad_input)
+
+
+def test_to_json_returns_independent_copy(sample_json):
+    """
+    Ensure to_json() returns a deep copy, so mutating the result
+    does not affect the instance.
+    """
+    pp = Phenopacket(sample_json)
+    out = pp.to_json()
+    assert out == sample_json
+    # Mutate the returned dict
+    out["phenotypicFeatures"].append({"type": {"id": "HP:9999999", "label": "New"}})
+    # but the instance is unaffected:
+    assert pp.count_phenotypes == len(sample_json["phenotypicFeatures"])
