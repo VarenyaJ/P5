@@ -8,11 +8,6 @@ import pytest
 from scripts.utils import find_pmids
 
 
-@pytest.fixture()
-def pmids():
-    return {"PMID_7803799", "PMID_8800795", "NO_ID", "PMID_8800795_PMID_8800795"}
-
-
 @pytest.mark.parametrize(
     "recursive, expected_pmids",
     [(True, {"PMID_8755636", "PMID_16636245"}), (False, set())],
@@ -54,7 +49,7 @@ def test_find_pmids(recursive: bool, expected_pmids: set[str], test_pmids: set[s
         assert expected_pmids == found_pmids
 
 
-def test_find_pmids_no_files_early_return(pmids: set[str]):
+def test_find_pmids_no_files_early_return():
     """
     tmp
     └── some_dir
@@ -62,6 +57,7 @@ def test_find_pmids_no_files_early_return(pmids: set[str]):
         ├── PMID_7803799.json
         ├── PMID_8800795.json
     """
+    pmids = {"PMID_7803799", "PMID_8800795", "NO_ID", "PMID_8800795_PMID_8800795"}
     with tempfile.TemporaryDirectory() as tmp_dir:
         save_dir = pathlib.Path(f"{tmp_dir}/some_dir")
         save_dir.mkdir(parents=True, exist_ok=True)
