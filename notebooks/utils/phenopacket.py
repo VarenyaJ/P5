@@ -18,28 +18,29 @@ class Phenopacket:
 
     def __init__(self, phenopacket_json: Any) -> None:
         """
-        Initialize a Phenopacket by validating and storing its JSON payload.
-        This constructor enforces the full GA4GH Phenopacket schema in one step using Protobuf's ParseDict. It verifies that:
-            1. The input is a mapping (i.e. dict-like).
-            2. A `phenotypicFeatures` field exists and is a list.
-            3. Each feature dict contains at least a `type.id` and `type.label`.
+        Initialize and validate a Phenopacket instance.
 
-        On success, the raw JSON is stored, and the list of phenotypic features is cached for fast queries. Any schema mismatch or wrong top-level type is caught and re-raised as InvalidPhenopacketError.
+        This constructor enforces the GA4GH Phenopacket schema in one step:
+            1. Parses and validates the entire JSON payload against the Protobuf definition via ParseDict (raising ParseError on schema mismatch).
+            2. Attempts to extract `phenotypicFeatures` (raising KeyError if missing, or TypeError if the payload is not indexable as a dict).
+
+        Any caught TypeError, KeyError, or ParseError is re-raised as InvalidPhenopacketError.
 
         Parameters
         ----------
         phenopacket_json : Any
-            A JSON-decoded object representing a GA4GH Phenopacket. Must be a dict with a `"phenotypicFeatures"` key mapping to a list of valid feature dicts.
+        A JSON-decoded object expected to be a dict representing a GA4GH Phenopacket, with `phenotypicFeatures` as a list of feature dicts.
 
         Raises
         ------
         InvalidPhenopacketError
-            If the input is not a dict or if it fails Protobuf validation (e.g. missing or malformed `phenotypicFeatures`, wrong nested fields).
+            If validation or extraction fails for any reason.
         """
-
-        # Have one validation mechanic for everything: TypeError if phenopacket_json is not a dict, and ParseError if required fields/types are missing or incorrect
         try:
+            # 1) Full schema validation via Protobuf
             _ = ParseDict(phenopacket_json, ProtoPhenopacket())
+            # 2) Extract the features list
+            feats = phenopacket_json["phenotypicFeatures"]
         except (TypeError, ParseError) as e:
             raise InvalidPhenopacketError(f"Failed to validate phenopacket: {e}")
 
@@ -53,33 +54,31 @@ class Phenopacket:
     @classmethod
     def load_from_file(cls, path: str) -> "Phenopacket":
         """
-        Load and validate a Phenopacket from a JSON file on disk.
+        Load a Phenopacket from a JSON file and validate it.
 
-        This method handles all file I/O and then delegates to the constructor for schema enforcement. It does **not** re-parse the schema here--instead, any malformed payload is caught when __init__ runs ParseDict.
-
-        Steps performed:
-            1. Attempt to open the file at `path`.
-            2. Parse its contents as JSON.
-            3. Call `__init__` with the decoded object, where full GA4GH validation (via Protobuf's ParseDict) occurs.
+        Steps:
+            1. Open the file at `path` (FileNotFoundError if missing).
+            2. Parse its contents as JSON (JSONDecodeError on invalid JSON).
+            3. Delegate to __init__ for schema validation.
 
         Parameters
         ----------
         path : str
-            Filesystem path to a `.json` file containing a GA4GH Phenopacket.
+            Path to the .json file containing a GA4GH Phenopacket.
 
         Returns
         -------
         Phenopacket
-            A fully validated Phenopacket instance.
+            A validated Phenopacket instance.
 
         Raises
         ------
         FileNotFoundError
-            If the file does not exist or cannot be opened.
+            If the file does not exist.
         json.JSONDecodeError
-            If the file's contents are not valid JSON.
+            If the file contents are not valid JSON.
         InvalidPhenopacketError
-            If the JSON fails GA4GH schema validation in the constructor (e.g. missing or malformed `phenotypicFeatures`).
+            If the JSON payload fails GA4GH schema validation.
         """
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
