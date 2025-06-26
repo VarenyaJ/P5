@@ -102,14 +102,6 @@ class Phenopacket:
 
     @property
     def count_phenotypes(self) -> int:
-        """
-        Number of phenotypic features in the packet.
-
-        Returns
-        -------
-        int
-            The length of the `"phenotypicFeatures"` list.
-        """
         return len(self._phenotypicFeatures)
 
     def list_phenotypes(self) -> List[str]:
@@ -124,17 +116,13 @@ class Phenopacket:
         List[str]
             A list of phenotype labels, in insertion order.
         """
-        # lean on Protobuf guarantees
-        # What: Simplified to a comprehension without defensive guards
-        # Where: list_phenotypes
-        # Why: After Protobuf & constructor validation, `.type.label` must exist
+        # After Protobuf & constructor validation, `.type.label` must exist
         return [feat["type"]["label"] for feat in self._phenotypicFeatures]
 
     def to_json(self) -> dict[str, Any]:
         """
-        Return a deep copy of the original JSON dict to avoid external mutations
+        Return a deep copy of the original JSON dict to avoid external mutations because returning the exact same dict/internal state allows for accidental mutations
         """
-        # Returning the exact same dict/internal state allows for accidental mutation
         return copy.deepcopy(self._json)
 
     def __repr__(self) -> str:
