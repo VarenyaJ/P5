@@ -10,7 +10,7 @@ file_types = [".pdf", ".pptx", ".docx", ".doc", ".html", ".txt"]
 
 @click.command()
 @click.argument("file_dir", type=click.Path(exists=True))
-@click.argument("out_dir", type=click.Path(exists=True))
+@click.argument("out_dir", type=click.Path(exists=False, dir_okay=True))
 @click.argument("prompt", type=click.STRING)
 @click.argument("model", type=click.STRING)
 @click.option(
