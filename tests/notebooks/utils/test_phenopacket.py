@@ -48,7 +48,6 @@ def test_load_from_file(sample_json):
     # Write the sample JSON to disk
     with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8") as f:
         json.dump(sample_json, f)
-        f.close()
         tmp_path = f.name
 
     # Load and validate
