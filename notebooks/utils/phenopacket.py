@@ -18,31 +18,23 @@ class Phenopacket:
 
     def __init__(self, phenopacket_json: Any) -> None:
         """
-        Initialize Phenopacket from a JSON-decoded dictionary.
+        Initialize a Phenopacket by validating and storing its JSON payload.
+        This constructor enforces the full GA4GH Phenopacket schema in one step using Protobuf's ParseDict. It verifies that:
+            1. The input is a mapping (i.e. dict-like).
+            2. A `phenotypicFeatures` field exists and is a list.
+            3. Each feature dict contains at least a `type.id` and `type.label`.
 
-        Performs minimal structural validation (presence and type of
-        `phenotypicFeatures`) before storing the raw dictionary for
-        downstream queries.
+        On success, the raw JSON is stored, and the list of phenotypic features is cached for fast queries. Any schema mismatch or wrong top-level type is caught and re-raised as InvalidPhenopacketError.
 
         Parameters
         ----------
-        phenopacket_json : dict
-            A JSON-decoded dict representing a GA4GH Phenopacket. It must
-            contain a key `"phenotypicFeatures"` mapped to a list of feature
-            objects, each of which should be a dict with at least:
-
-            {
-                "type": {
-                    "id": "<HPO:NNNNNNN>",
-                    "label": "<Phenotype Label>"
-                }
-            }
+        phenopacket_json : Any
+            A JSON-decoded object representing a GA4GH Phenopacket. Must be a dict with a `"phenotypicFeatures"` key mapping to a list of valid feature dicts.
 
         Raises
         ------
         InvalidPhenopacketError
-            If `phenopacket_json` is not a dict or if
-            `"phenotypicFeatures"` is missing or not a list.
+            If the input is not a dict or if it fails Protobuf validation (e.g. missing or malformed `phenotypicFeatures`, wrong nested fields).
         """
 
         # Have one validation mechanic for everything: TypeError if phenopacket_json is not a dict, and ParseError if required fields/types are missing or incorrect
