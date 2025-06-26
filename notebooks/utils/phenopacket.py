@@ -55,9 +55,12 @@ class Phenopacket:
         """
         Load and validate a Phenopacket from a JSON file on disk.
 
-        Reads the file at `path`, parses it as JSON, then invokes Protobuf's
-        `ParseDict` to enforce the full GA4GH schema. If parsing succeeds,
-        the raw dict is passed to `__init__` for minimal structural checks.
+        This method handles all file I/O and then delegates to the constructor for schema enforcement. It does **not** re-parse the schema here--instead, any malformed payload is caught when __init__ runs ParseDict.
+
+        Steps performed:
+            1. Attempt to open the file at `path`.
+            2. Parse its contents as JSON.
+            3. Call `__init__` with the decoded object, where full GA4GH validation (via Protobuf's ParseDict) occurs.
 
         Parameters
         ----------
@@ -67,27 +70,20 @@ class Phenopacket:
         Returns
         -------
         Phenopacket
-            An initialized Phenopacket instance.
+            A fully validated Phenopacket instance.
 
         Raises
         ------
         FileNotFoundError
-            If no file exists at `path`.
+            If the file does not exist or cannot be opened.
+        json.JSONDecodeError
+            If the file's contents are not valid JSON.
         InvalidPhenopacketError
-            If JSON parsing fails or the Protobuf schema validation fails.
+            If the JSON fails GA4GH schema validation in the constructor (e.g. missing or malformed `phenotypicFeatures`).
         """
-        # Removed explicit os.path.isfile check because `open(path)` raises FileNotFoundError already
-
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-
-        try:
-            # Full schema validation via Protobuf
-            _ = ParseDict(data, ProtoPhenopacket())
-        except ParseError as e:
-            raise InvalidPhenopacketError(f"Failed to parse phenopacket: {e}")
-
-        # Hand the validated dict to our constructor
+        # Validation noew entirely lives in `__init__`
         return cls(data)
 
     def contains_phenotype(self, hpo_label: str) -> bool:
