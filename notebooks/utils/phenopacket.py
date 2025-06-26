@@ -15,13 +15,8 @@ class InvalidPhenopacketError(ValueError):
 
 
 class Phenopacket:
-    """
-    Helper for loading and querying GA4GH Phenopacket JSON files.
 
-    Wraps the Protobuf-based Phenopacket model from the `phenopackets` package, providing minimal on-disk loading, basic schema validation via Protobuf, and simple phenotype queries.
-    """
-
-    def __init__(self, phenopacket_json: dict[str, Any]) -> None:
+    def __init__(self, phenopacket_json: Any) -> None:
         """
         Initialize Phenopacket from a JSON-decoded dictionary.
 
@@ -49,17 +44,14 @@ class Phenopacket:
             If `phenopacket_json` is not a dict or if
             `"phenotypicFeatures"` is missing or not a list.
         """
-        # re-add minimal validation
-        # What: Check that the input is a dict and that
-        #       'phenotypicFeatures' exists and is a list.
-        # Where: __init__, before assigning self._json
-        # Why: Tests expect InvalidPhenopacketError for non-dict or bad list.
-        if not isinstance(phenopacket_json, dict):
-            raise InvalidPhenopacketError("Phenopacket JSON must be a dict.")
-        phen_feats = phenopacket_json.get("phenotypicFeatures")
-        if not isinstance(phen_feats, list):
-            raise InvalidPhenopacketError("`phenotypicFeatures` must be a list.")
 
+        # Have one validation mechanic for everything: TypeError if phenopacket_json is not a dict, and ParseError if required fields/types are missing or incorrect
+        try:
+            _ = ParseDict(phenopacket_json, ProtoPhenopacket())
+        except (TypeError, ParseError) as e:
+            raise InvalidPhenopacketError(f"Failed to validate phenopacket: {e}")
+
+        # If we reach this step then phenopacket_json is guaranteed to be valid
         self._json = phenopacket_json
         # We assume the Protobuf-validated dict always has this key:
         self._phenotypicFeatures: List[dict[str, Any]] = phenopacket_json[
