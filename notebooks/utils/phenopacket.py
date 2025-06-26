@@ -201,4 +201,3 @@ class Phenopacket:
         if c == 0:
             return "Phenopacket with no phenotypic features"
         return f"Phenopacket with {c} phenotypic feature{'s' if c != 1 else ''}"
-
