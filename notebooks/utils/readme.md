@@ -71,22 +71,3 @@ data = pp.to_json()
 data["phenotypicFeatures"].append({"type": {"id": "HP:9999999", "label": "Experimental"}})
 print(pp.count_phenotypes)  # unchanged
 ```
-
-### Testing
-
-From the repo root, run:
-
-**format code**
-```bash
-black .
-```
-
-**check formatting for tests**
-```bash
-black ./tests --check --skip-magic-trailing-comma
-```
-
-**run the phenopacket tests**
-```bash
-pytest -vv tests/notebooks/utils/test_phenopacket.py
-```
