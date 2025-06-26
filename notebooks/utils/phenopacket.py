@@ -39,17 +39,15 @@ class Phenopacket:
         try:
             # 1) Full schema validation via Protobuf
             _ = ParseDict(phenopacket_json, ProtoPhenopacket())
-            # 2) Extract the features list
+            # 2) Structural extraction of the phenotypicFeatures list:
             feats = phenopacket_json["phenotypicFeatures"]
         except (TypeError, ParseError) as e:
             raise InvalidPhenopacketError(f"Failed to validate phenopacket: {e}")
 
-        # If we reach this step then phenopacket_json is guaranteed to be valid
+        # If we reach this step then phenopacket_json is guaranteed to be valid, so we can successfully cache the raw JSON and the features list
         self._json = phenopacket_json
         # We assume the Protobuf-validated dict always has this key:
-        self._phenotypicFeatures: List[dict[str, Any]] = phenopacket_json[
-            "phenotypicFeatures"
-        ]
+        self._phenotypicFeatures: List[dict[str, Any]] = feats
 
     @classmethod
     def load_from_file(cls, path: str) -> "Phenopacket":
