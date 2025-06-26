@@ -39,7 +39,6 @@ def test_load_from_file(sample_json):
     sample_json : dict
         The fixture providing a valid Phenopacket dictionary.
     -------
-    assert pp.count_phenotypes == 3
     """
     # Write the sample JSON to disk
     with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8") as f:
