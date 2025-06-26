@@ -50,7 +50,7 @@ def test_load_from_file(sample_json):
 
     # Load and validate
     pp = Phenopacket.load_from_file(tmp_path)
-    # CHANGED: Tie assertion of count to fixture length
+    # Tie assertion of count to fixture length
     # More robust that hard-coding a literal
     assert pp.count_phenotypes == len(sample_json["phenotypicFeatures"])
 

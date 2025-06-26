@@ -50,7 +50,7 @@ class Phenopacket:
             If `phenopacket_json` is not a dict or if
             `"phenotypicFeatures"` is missing or not a list.
         """
-        # CHANGED: re-add minimal validation
+        #re-add minimal validation
         # What: Check that the input is a dict and that
         #       'phenotypicFeatures' exists and is a list.
         # Where: __init__, before assigning self._json
@@ -93,7 +93,7 @@ class Phenopacket:
         InvalidPhenopacketError
             If JSON parsing fails or the Protobuf schema validation fails.
         """
-        # CHANGED: Removed explicit os.path.isfile check because `open(path)` raises FileNotFoundError already
+        #Removed explicit os.path.isfile check because `open(path)` raises FileNotFoundError already
 
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -148,7 +148,7 @@ class Phenopacket:
         List[str]
             A list of phenotype labels, in insertion order.
         """
-        # CHANGED: lean on Protobuf guarantees
+        #lean on Protobuf guarantees
         # What: Simplified to a comprehension without defensive guards
         # Where: list_phenotypes
         # Why: After Protobuf & constructor validation, `.type.label` must exist
@@ -158,7 +158,7 @@ class Phenopacket:
         """
         Return a deep copy of the original JSON dict to avoid external mutations
         """
-        # CHANGED: Returning the exact same dict/internal state allows for accidental mutation
+        #Returning the exact same dict/internal state allows for accidental mutation
         return copy.deepcopy(self._json)
 
     def __repr__(self) -> str:
