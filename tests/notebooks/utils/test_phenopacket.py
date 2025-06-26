@@ -38,8 +38,6 @@ def test_load_from_file(sample_json):
     ----------
     sample_json : dict
         The fixture providing a valid Phenopacket dictionary.
-
-    Asserts
     -------
     assert pp.count_phenotypes == 3
     """
@@ -76,8 +74,6 @@ def test_invalid_structure_raises(bad_input):
     ----------
     bad_input : Any
         A malformed JSON payload to pass to the constructor.
-
-    Asserts
     -------
     Raises InvalidPhenopacketError for each malformed input.
     """
