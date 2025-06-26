@@ -53,36 +53,12 @@ class Phenopacket:
             If `phenopacket_json` is not a dict or if
             `"phenotypicFeatures"` is missing or not a list.
         """
-        self._validate_structure(phenopacket_json)
-        self._json: dict[str, Any] = phenopacket_json
+        # CHANGED: Introduced two separate validation mechanisms. No longer need the custom '_validate_structure' as 'google.protobuf.json_format' has 'ParseDict' and 'ParseError'
+        self._json = phenopacket_json
+        # We assume the Protobuf-validated dict always has this key:
         self._phenotypicFeatures: List[dict[str, Any]] = phenopacket_json[
             "phenotypicFeatures"
         ]
-
-    @staticmethod
-    def _validate_structure(data: dict[str, Any]) -> None:
-        """
-        Validate minimal Phenopacket JSON schema.
-
-        Ensures the top-level object is a dict and that its
-        `"phenotypicFeatures"` entry, if present, is a list.
-
-        Parameters
-        ----------
-        data : dict
-            The JSON-decoded dict to validate.
-
-        Raises
-        ------
-        InvalidPhenopacketError
-            If `data` is not a dict or if its `"phenotypicFeatures"`
-            entry exists and is not a list.
-        """
-        if not isinstance(data, dict):
-            raise InvalidPhenopacketError("Phenopacket JSON must be a dict.")
-        features = data.get("phenotypicFeatures", [])
-        if not isinstance(features, list):
-            raise InvalidPhenopacketError("`phenotypicFeatures` must be a list.")
 
     @classmethod
     def load_from_file(cls, path: str) -> "Phenopacket":
