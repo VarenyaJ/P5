@@ -120,3 +120,7 @@ class Report:
     def get_metric(self, metric: str) -> float:
         logger.debug("get_metric('%s') called", metric)
         return self.metrics[metric]
+
+    def __str__(self) -> str:
+        logger.debug("Generating classification_report string")
+        return sk_classification_report(self.y_true, self.y_pred)
