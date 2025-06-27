@@ -115,7 +115,6 @@ class Phenopacket:
         List[str]
             A list of phenotype labels, in insertion order.
         """
-        # After Protobuf & constructor validation, `.type.label` must exist
         return [feat["type"]["label"] for feat in self._phenotypicFeatures]
 
     def to_json(self) -> dict[str, Any]:
