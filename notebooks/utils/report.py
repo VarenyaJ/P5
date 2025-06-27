@@ -31,3 +31,30 @@ class Report:
     metrics: Dict[str, float] = field(init=False)
 
     def __post_init__(self) -> None:
+        if len(self.y_true) != len(self.y_pred):
+            logger.error(
+                "Length mismatch: y_true has %d elements, y_pred has %d",
+                len(self.y_true),
+                len(self.y_pred),
+            )
+            raise ValueError("`y_true` and `y_pred` must be the same length")
+
+        logger.debug("Computing confusion matrix for %d samples", len(self.y_true))
+        cm = sk_confusion_matrix(self.y_true, self.y_pred)
+        self.confusion_matrix = cm.tolist()
+        logger.info("Confusion matrix computed: %s", self.confusion_matrix)
+
+        prec = precision_score(
+            self.y_true, self.y_pred, average="macro", zero_division=0
+        )
+        rec = recall_score(self.y_true, self.y_pred, average="macro", zero_division=0)
+        f1 = f1_score(self.y_true, self.y_pred, average="macro", zero_division=0)
+        self.metrics = {"precision": prec, "recall": rec, "f1_score": f1}
+        (
+            logger.info(
+                "Metrics computed -- precision: %.4f, recall: %.4f, f1_score: %.4f",
+                prec,
+                rec,
+                f1,
+            )
+        )
