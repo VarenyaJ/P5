@@ -56,3 +56,12 @@ def test_save_and_load_report(tmp_path):
     assert rpt2.metrics == rpt.metrics
     for fld in ("creator", "experiment", "model", "num_samples"):
         assert rpt2.metadata[fld] == rpt.metadata[fld]
+
+def test_str_includes_headers():
+    y_true = [0, 1, 0]
+    y_pred = [0, 0, 0]
+    rpt = Report.create(y_true, y_pred, "u", "e", "m")
+    s = str(rpt).lower()
+    assert "precision" in s
+    assert "recall" in s
+    assert "f1-score" in s
