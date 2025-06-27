@@ -79,3 +79,18 @@ class Report:
             meta.update(extra_metadata)
             logger.debug("Creating report with metadata: %s", meta)
             return cls(y_true=y_true, y_pred=y_pred, metadata=meta)
+
+        def save(self, filepath: str) -> None:
+            """
+            """
+            payload = {
+                "y_true": self.y_true,
+                "y_pred": self.y_pred,
+                "metadata": self.metadata,
+                "confusion_matrix": self.confusion_matrix,
+                "metrics": self.metrics,
+            }
+            logger.debug("Saving report to %s", filepath)
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=4)
+            logger.info("Report saved successfully")
