@@ -112,3 +112,7 @@ class Report:
         )
         logger.info("Report loaded and metrics re-computed")
         return rpt
+
+    def get_metrics(self) -> Dict[str, float]:
+        logger.debug("get_metrics() called")
+        return self.metrics
