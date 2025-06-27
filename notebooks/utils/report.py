@@ -20,9 +20,6 @@ logger.addHandler(NullHandler())
 
 @dataclass
 class Report:
-    """
-    """
-
     y_true: List[Any]
     y_pred: List[Any]
     metadata: Dict[str, Any]
@@ -59,38 +56,59 @@ class Report:
             )
         )
 
-        @classmethod
-        def create(
-                cls,
-                y_true: List[Any],
-                y_pred: List[Any],
-                creator: str,
-                experiment: str,
-                model: str,
-                **extra_metadata: Any
-        ) -> "Report":
-            meta: Dict[str, Any] = {
-                "date": datetime.now().date().isoformat(),
-                "creator": creator,
-                "experiment": experiment,
-                "model": model,
-                "num_samples": len(y_true),
-            }
-            meta.update(extra_metadata)
-            logger.debug("Creating report with metadata: %s", meta)
-            return cls(y_true=y_true, y_pred=y_pred, metadata=meta)
+    @classmethod
+    def create(
+        cls,
+        y_true: List[Any],
+        y_pred: List[Any],
+        creator: str,
+        experiment: str,
+        model: str,
+        **extra_metadata: Any
+    ) -> "Report":
+        meta: Dict[str, Any] = {
+            "date": datetime.now().date().isoformat(),
+            "creator": creator,
+            "experiment": experiment,
+            "model": model,
+            "num_samples": len(y_true),
+        }
+        meta.update(extra_metadata)
+        logger.debug("Creating report with metadata: %s", meta)
+        return cls(y_true=y_true, y_pred=y_pred, metadata=meta)
 
-        def save(self, filepath: str) -> None:
-            """
-            """
-            payload = {
-                "y_true": self.y_true,
-                "y_pred": self.y_pred,
-                "metadata": self.metadata,
-                "confusion_matrix": self.confusion_matrix,
-                "metrics": self.metrics,
-            }
-            logger.debug("Saving report to %s", filepath)
-            with open(filepath, "w", encoding="utf-8") as f:
-                json.dump(payload, f, indent=4)
-            logger.info("Report saved successfully")
+    def save(self, filepath: str) -> None:
+        payload = {
+            "y_true": self.y_true,
+            "y_pred": self.y_pred,
+            "metadata": self.metadata,
+            "confusion_matrix": self.confusion_matrix,
+            "metrics": self.metrics,
+        }
+        logger.debug("Saving report to %s", filepath)
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=4)
+        logger.info("Report saved successfully")
+
+    @staticmethod
+    def load(filepath: str) -> "Report":
+        logger.debug("Loading report from %s", filepath)
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Pull out core metadata needed by create()
+        core_keys = ("creator", "experiment", "model", "num_samples")
+        core = {k: data["metadata"][k] for k in core_keys}
+        extra = {
+            k: v for k, v in data["metadata"].items() if k not in (*core_keys, "date")
+        }
+        rpt = Report.create(
+            y_true=data["y_true"],
+            y_pred=data["y_pred"],
+            creator=core["creator"],
+            experiment=core["experiment"],
+            model=core["model"],
+            **extra,
+        )
+        logger.info("Report loaded and metrics re-computed")
+        return rpt
