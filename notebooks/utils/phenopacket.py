@@ -37,9 +37,7 @@ class Phenopacket:
             If validation or extraction fails for any reason.
         """
         try:
-            # 1) Full schema validation via Protobuf
             _ = ParseDict(phenopacket_json, ProtoPhenopacket())
-            # 2) Structural extraction of the phenotypicFeatures list:
             feats = phenopacket_json["phenotypicFeatures"]
         except (TypeError, ParseError) as e:
             raise InvalidPhenopacketError(f"Failed to validate phenopacket: {e}")
