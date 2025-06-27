@@ -2,14 +2,18 @@ import json
 import pytest
 from pathlib import Path
 from sklearn.metrics import precision_score, recall_score, f1_score
+
 from notebooks.utils.report import Report
 
+
 def test_length_mismatch_raises():
+    """y_true and y_pred of differing lengths should error immediately."""
     with pytest.raises(ValueError):
         Report.create([0, 1], [0], "A", "E1", "M1")
 
 
 def test_report_creation_and_metrics():
+    """Check metadata, confusion matrix shape, and macro metrics calculation."""
     y_true = [0, 1, 1, 0, 1]
     y_pred = [0, 1, 0, 0, 1]
 
@@ -38,7 +42,9 @@ def test_report_creation_and_metrics():
     n_classes = len({*y_true, *y_pred})
     assert len(cm) == n_classes and all(len(row) == n_classes for row in cm)
 
+
 def test_save_and_load_report(tmp_path):
+    """Saving to disk and re-loading should preserve metrics and CM."""
     y_true = [0, 0, 1, 1]
     y_pred = [0, 1, 1, 0]
     rpt = Report.create(y_true, y_pred, "tester", "exp2", "modelB")
@@ -57,7 +63,9 @@ def test_save_and_load_report(tmp_path):
     for fld in ("creator", "experiment", "model", "num_samples"):
         assert rpt2.metadata[fld] == rpt.metadata[fld]
 
+
 def test_str_includes_headers():
+    """__str__() output should mention 'precision', 'recall', and 'f1-score'."""
     y_true = [0, 1, 0]
     y_pred = [0, 0, 0]
     rpt = Report.create(y_true, y_pred, "u", "e", "m")
