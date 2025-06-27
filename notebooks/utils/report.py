@@ -16,3 +16,18 @@ from sklearn.metrics import (
 # Module-level logger: silent by default unless the application configures logging.
 logger = logging.getLogger(__name__)
 logger.addHandler(NullHandler())
+
+
+@dataclass
+class Report:
+    """
+    """
+
+    y_true: List[Any]
+    y_pred: List[Any]
+    metadata: Dict[str, Any]
+    # These two fields are computed after __init__, not passed by the caller.
+    confusion_matrix: List[List[int]] = field(init=False)
+    metrics: Dict[str, float] = field(init=False)
+
+    def __post_init__(self) -> None:
