@@ -18,7 +18,7 @@ def test_report_creation_and_metrics():
     y_pred = [0, 1, 0, 0, 1]
 
     rpt = Report.create(y_true, y_pred, "tester", "exp1", "modelA", note="unit test")
-    meta = rpt.metadata
+    meta = rpt._metadata
 
     # Required metadata
     assert meta["creator"] == "tester"
@@ -45,9 +45,10 @@ def test_report_creation_and_metrics():
 
 def test_save_and_load_report(tmp_path):
     """Saving to disk and re-loading should preserve metrics and CM."""
-    y_true = [0, 0, 1, 1]
-    y_pred = [0, 1, 1, 0]
-    rpt = Report.create(y_true, y_pred, "tester", "exp2", "modelB")
+
+    rpt = Report(
+        tn=5, tp=5, fn=5, fp=5, creator="tester", experiment="exp2", model="modelB"
+    )
     out = tmp_path / "r.json"
     rpt.save(str(out))
 
@@ -61,7 +62,7 @@ def test_save_and_load_report(tmp_path):
     assert rpt2.confusion_matrix == rpt.confusion_matrix
     assert rpt2.metrics == rpt.metrics
     for fld in ("creator", "experiment", "model", "num_samples"):
-        assert rpt2.metadata[fld] == rpt.metadata[fld]
+        assert rpt2._metadata[fld] == rpt._metadata[fld]
 
 
 def test_str_includes_headers():

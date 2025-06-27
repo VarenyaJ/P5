@@ -12,10 +12,10 @@ Key imports:
 import json
 import logging
 from logging import NullHandler
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
+import numpy as np
 from sklearn.metrics import (
     confusion_matrix as sk_confusion_matrix,
     precision_score,
@@ -61,107 +61,53 @@ class Report:
         Computed in __post_init__; keys "precision", "recall", "f1_score".
     """
 
-    y_true: List[Any]
-    y_pred: List[Any]
-    metadata: Dict[str, Any]
-    # These two fields are computed after __init__, not passed by the caller.
-    confusion_matrix: List[List[int]] = field(init=False)
-    metrics: Dict[str, float] = field(init=False)
-
-    def __post_init__(self) -> None:
-        """
-        Called automatically after the dataclass-generated __init__.
-
-        - Validates that y_true and y_pred have the same length.
-        - Uses sklearn.metrics to compute confusion_matrix, precision, recall, and F1.
-        - Logs each step via the module logger.
-
-        Raises
-        ------
-        ValueError
-            If lengths of y_true and y_pred differ.
-        """
-        if len(self.y_true) != len(self.y_pred):
-            logger.error(
-                "Length mismatch: y_true has %d elements, y_pred has %d",
-                len(self.y_true),
-                len(self.y_pred),
-            )
-            raise ValueError("`y_true` and `y_pred` must be the same length")
-
-        logger.debug("Computing confusion matrix for %d samples", len(self.y_true))
-        cm = sk_confusion_matrix(self.y_true, self.y_pred)
-        self.confusion_matrix = cm.tolist()
-        logger.info("Confusion matrix computed: %s", self.confusion_matrix)
-
-        prec = precision_score(
-            self.y_true, self.y_pred, average="macro", zero_division=0
-        )
-        rec = recall_score(self.y_true, self.y_pred, average="macro", zero_division=0)
-        f1 = f1_score(self.y_true, self.y_pred, average="macro", zero_division=0)
-        self.metrics = {"precision": prec, "recall": rec, "f1_score": f1}
-        (
-            logger.info(
-                "Metrics computed -- precision: %.4f, recall: %.4f, f1_score: %.4f",
-                prec,
-                rec,
-                f1,
-            )
-        )
-
-    @classmethod
-    def create(
-        cls,
-        y_true: List[Any],
-        y_pred: List[Any],
+    def __init__(
+        self,
+        tp: int,
+        fp: int,
+        fn: int,
+        tn: int,
         creator: str,
         experiment: str,
         model: str,
-        **extra_metadata: Any
-    ) -> "Report":
-        """
-        Construct a Report with automatic date stamping.
+        **extra_metadata
+    ):
+        self._tp = tp
+        self._fp = fp
+        self._fn = fn
+        self._tn = tn
+        self._metadata = {"creator": creator, "experiment": experiment, "model": model}
+        self._metadata.update(extra_metadata)
+        self._compute_metrics()
 
-        - Uses datetime.now().date().isoformat() to generate metadata['date'].
-        - Wraps all parameters into a metadata dict, adding 'num_samples'.
+    def _compute_metrics(self):
+        y_true = (
+            ([True] * self._tp)
+            + ([False] * self._tn)
+            + ([True] * self._fn)
+            + ([False] * self._fp)
+        )
+        y_pred = (
+            ([True] * self._tp)
+            + ([False] * self._tn)
+            + ([False] * self._fn)
+            + ([True] * self._fp)
+        )
+        logger.debug("Computing confusion matrix for %d samples", len(y_true))
 
-        Parameters
-        ----------
-        y_true : List[Any]
-            Ground-truth labels.
-        y_pred : List[Any]
-            Predicted labels.
-        creator : str
-            Who ran the evaluation.
-        experiment : str
-            Experiment identifier.
-        model : str
-            Model name or version.
-        **extra_metadata : Any
-            Additional metadata entries (e.g. hyperparameters).
+        precision = precision_score(y_true, y_pred, average="macro", zero_division=0)
+        rec = recall_score(y_true, y_pred, average="macro", zero_division=0)
+        f1 = f1_score(y_true, y_pred, average="macro", zero_division=0)
+        self._metrics = {"precision": precision, "recall": rec, "f1_score": f1}
 
+        logger.info(
+            "Metrics computed -- precision: %.4f, recall: %.4f, f1_score: %.4f",
+            precision,
+            rec,
+            f1,
+        )
 
-        Returns
-        -------
-        Report
-            Ready-to-use report with metrics computed.
-
-        Examples
-        --------
-        >>> rpt = Report.create([0,1,1], [0,0,1], creator="Alice", experiment="exp1", model="v1.0", notes="proof of concept")
-        """
-        meta: Dict[str, Any] = {
-            "date": datetime.now().date().isoformat(),
-            "creator": creator,
-            "experiment": experiment,
-            "model": model,
-            "num_samples": len(y_true),
-        }
-        meta.update(extra_metadata)
-        logger.debug("Creating report with metadata: %s", meta)
-        return cls(y_true=y_true, y_pred=y_pred, metadata=meta)
-
-    def save(self, filepath: str) -> None:
+    def save(self, filepath: str):
         """
         Write this Report out as a JSON file.
 
@@ -175,13 +121,7 @@ class Report:
         IOError
             If writing to disk fails.
         """
-        payload = {
-            "y_true": self.y_true,
-            "y_pred": self.y_pred,
-            "metadata": self.metadata,
-            "confusion_matrix": self.confusion_matrix,
-            "metrics": self.metrics,
-        }
+        payload = self.__dict__
         logger.debug("Saving report to %s", filepath)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=4)
@@ -219,14 +159,16 @@ class Report:
             data = json.load(f)
 
         # Pull out core metadata needed by create()
-        core_keys = ("creator", "experiment", "model", "num_samples")
+        core_keys = ("creator", "experiment", "model")
         core = {k: data["metadata"][k] for k in core_keys}
         extra = {
             k: v for k, v in data["metadata"].items() if k not in (*core_keys, "date")
         }
-        rpt = Report.create(
-            y_true=data["y_true"],
-            y_pred=data["y_pred"],
+        rpt = Report(
+            tp=data["TP"],
+            fp=data["FP"],
+            fn=data["FN"],
+            tn=data["TN"],
             creator=core["creator"],
             experiment=core["experiment"],
             model=core["model"],
@@ -244,7 +186,6 @@ class Report:
         Dict[str, float]
             Keys: "precision", "recall", "f1_score".
         """
-        logger.debug("get_metrics() called")
         return self.metrics
 
     def get_metric(self, metric: str) -> float:
@@ -266,7 +207,6 @@ class Report:
         KeyError
             If an unsupported metric key is requested.
         """
-        logger.debug("get_metric('%s') called", metric)
         return self.metrics[metric]
 
     def __str__(self) -> str:
