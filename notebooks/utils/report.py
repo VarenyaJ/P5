@@ -58,3 +58,24 @@ class Report:
                 f1,
             )
         )
+
+        @classmethod
+        def create(
+                cls,
+                y_true: List[Any],
+                y_pred: List[Any],
+                creator: str,
+                experiment: str,
+                model: str,
+                **extra_metadata: Any
+        ) -> "Report":
+            meta: Dict[str, Any] = {
+                "date": datetime.now().date().isoformat(),
+                "creator": creator,
+                "experiment": experiment,
+                "model": model,
+                "num_samples": len(y_true),
+            }
+            meta.update(extra_metadata)
+            logger.debug("Creating report with metadata: %s", meta)
+            return cls(y_true=y_true, y_pred=y_pred, metadata=meta)
