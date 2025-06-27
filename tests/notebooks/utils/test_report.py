@@ -37,3 +37,22 @@ def test_report_creation_and_metrics():
     cm = rpt.confusion_matrix
     n_classes = len({*y_true, *y_pred})
     assert len(cm) == n_classes and all(len(row) == n_classes for row in cm)
+
+def test_save_and_load_report(tmp_path):
+    y_true = [0, 0, 1, 1]
+    y_pred = [0, 1, 1, 0]
+    rpt = Report.create(y_true, y_pred, "tester", "exp2", "modelB")
+    out = tmp_path / "r.json"
+    rpt.save(str(out))
+
+    # Validate JSON structure
+    js = json.loads(out.read_text())
+    for k in ("y_true", "y_pred", "metadata", "confusion_matrix", "metrics"):
+        assert k in js
+
+    # Reload and compare
+    rpt2 = Report.load(str(out))
+    assert rpt2.confusion_matrix == rpt.confusion_matrix
+    assert rpt2.metrics == rpt.metrics
+    for fld in ("creator", "experiment", "model", "num_samples"):
+        assert rpt2.metadata[fld] == rpt.metadata[fld]
