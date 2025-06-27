@@ -116,3 +116,7 @@ class Report:
     def get_metrics(self) -> Dict[str, float]:
         logger.debug("get_metrics() called")
         return self.metrics
+
+    def get_metric(self, metric: str) -> float:
+        logger.debug("get_metric('%s') called", metric)
+        return self.metrics[metric]
