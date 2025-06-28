@@ -130,7 +130,7 @@ def test_PMID_downloader_with_pmcid_mocked(
 
         assert (
             expected_pmids == pdf_file_names_no_file_type
-        ), f"There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
+        ), "There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
 
 @mock.patch("scripts.PMID_downloader.Entrez")
