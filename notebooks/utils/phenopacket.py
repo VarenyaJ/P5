@@ -51,7 +51,7 @@ class Phenopacket:
         self._json = phenopacket_json
         # We assume the Protobuf-validated dict always has this key:
         self._phenotypicFeatures: List[dict[str, Any]] = feats
-        logger.info(f"Successfully validated %d phenotypic feature(s)", len(feats))
+        logger.info("Successfully validated %d phenotypic feature(s)", len(feats))
         logger.debug("Successfully validated phenotypic feature(s): %r", feats)
 
     @classmethod
