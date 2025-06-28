@@ -6,7 +6,9 @@ from typing import Optional
 import click
 import requests
 from Bio import Entrez
+from requests.exceptions import InvalidSchema
 from selenium import webdriver
+from selenium.common import InvalidSessionIdException
 from selenium.webdriver.chrome.options import Options
 from tqdm import tqdm
 
@@ -76,13 +78,13 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
         with open(f"{pdf_out_dir}/{pmid}.pdf", "wb") as f:
             f.write(response.content)
             click.secho(
-                message=f"A PDF for PMID_{pmid} was successfully downloaded. PMCID = {pmcid}.",
+                message=f"A PDF for {pmid} was successfully downloaded. PMCID={pmcid}.",
                 fg="green",
             )
 
-    except Exception as e:
+    except (InvalidSessionIdException, FileNotFoundError, IOError, InvalidSchema) as e:
         click.secho(
-            message=f"An error occurred when downloading PMID_{pmid} = PMC_{pmcid}: {e}",
+            message=f"An error occurred when downloading {pmid} = PMC_{pmcid}: {e}",
             err=True,
             fg="red",
         )
