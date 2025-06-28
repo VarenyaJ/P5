@@ -53,3 +53,6 @@ jobs:
 
     - name: Black Formatting - tests
       run:  black ./tests --check --skip-magic-trailing-comma
+
+    - name: ruff-action
+      run: ruff check
