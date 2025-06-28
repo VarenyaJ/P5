@@ -1,12 +1,8 @@
-import os
-import pathlib
 import tempfile
 from unittest import mock
 
-import pytest
 
 from click.testing import CliRunner
-from docling.document_converter import DocumentConverter
 
 from scripts.utils import pkl_loader
 from scripts.create_pmid_pkl import create_pmid_pkl
