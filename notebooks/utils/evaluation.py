@@ -3,9 +3,6 @@ from typing import List, Dict, Any
 from notebooks.utils.phenopacket import Phenopacket
 
 from sklearn.metrics import (
-    precision_score,
-    recall_score,
-    f1_score,
     classification_report,
 )
 
@@ -221,8 +218,6 @@ class PhenotypeEvaluator:
             "classification_report": class_report_str,
             "metadata": metadata,
         }
-
-        return result
 
     #
 

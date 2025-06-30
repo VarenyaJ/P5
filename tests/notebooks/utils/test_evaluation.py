@@ -1,6 +1,5 @@
 import json
 import pytest
-from pathlib import Path
 
 from notebooks.utils.evaluation import PhenotypeEvaluator
 from notebooks.utils.phenopacket import Phenopacket
