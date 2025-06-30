@@ -84,10 +84,10 @@ def create_phenopacket_dataset(
         [pmid, input_data[pmid], ground_truth_data[pmid]] for pmid in matching_pmids
     ]
 
-    df = pd.DataFrame(data, columns=["pmid", "input", "truth"])
-    df = df.explode(column="truth")
-    df = df.explode(column="input")
-    df.to_csv(dataset_out_dir, index=False)
+    pubmed_dataset = pd.DataFrame(data, columns=["pmid", "input", "truth"])
+    pubmed_dataset = pubmed_dataset.explode(column="truth")
+    pubmed_dataset = pubmed_dataset.explode(column="input")
+    pubmed_dataset.to_csv(dataset_out_dir, index=False)
 
 
 if __name__ == "__main__":
