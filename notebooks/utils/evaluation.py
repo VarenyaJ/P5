@@ -218,8 +218,3 @@ class PhenotypeEvaluator:
             "classification_report": class_report_str,
             "metadata": metadata,
         }
-
-    #
-
-
-#
