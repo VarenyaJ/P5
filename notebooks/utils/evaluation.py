@@ -213,7 +213,7 @@ class PhenotypeEvaluator:
         9) Return everything in one convenient dict.
         """
         return {
-            "confusion_matrix": confusion_matrix,
+            "confuson_matrix": confusion_matrix,
             "metrics": metrics,
             "classification_report": class_report_str,
             "metadata": metadata,
