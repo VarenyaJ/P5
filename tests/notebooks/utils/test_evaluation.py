@@ -1,127 +1,139 @@
-"""
-test_evaluation.py
-
-Unit tests for PhenotypeEvaluator and its integration with Phenopacket.
-Verifies TP/FP/FN counts, macro metrics, and classification report output.
-"""
-
 import json
 import pytest
+from pathlib import Path
 
-from notebooks.utils.evaluation import PhenotypeEvaluator
+from notebooks.utils.evaluation import PhenotypeEvaluator, Report
 from notebooks.utils.phenopacket import Phenopacket
 
 
 @pytest.fixture
-def phenopacket_path(tmp_path):
-    """
-    Write a minimal phenopacket JSON file with two HPO labels
-    and return its file path.
-    """
-    data = {
-        "phenotypicFeatures": [
-            {"type": {"id": "HP:0000001", "label": "Phen1"}},
-            {"type": {"id": "HP:0000002", "label": "Phen2"}},
-        ]
-    }
-    path = tmp_path / "test.json"
-    path.write_text(json.dumps(data), encoding="utf-8")
-    return str(path)
+def path_to_true_phenopacket(tmp_path):
+   """
+   Create a minimal ground truth Phenopacket JSON file with two HPO labels:
+     - "Phen1"
+     - "Phen2"
+   Returns the file path to this JSON.
+   """
+   data = {
+       "phenotypicFeatures": [
+           {"type": {"id": "HP:0000001", "label": "Phen1"}},
+           {"type": {"id": "HP:0000002", "label": "Phen2"}},
+       ]
+   }
+   true_file = tmp_path / "true_packet.json"
+   true_file.write_text(json.dumps(data), encoding="utf-8")
+   return str(true_file)
 
 
-def test_perfect_prediction_metadata(phenopacket_path):
-    """
-    When predictions exactly match ground truth,
-    TP should be 2, FP and FN should be 0.
-    """
-    evaluator = PhenotypeEvaluator()
-    ground_truth = Phenopacket.load_from_file(phenopacket_path)
+def test_perfect_prediction_counts(path_to_true_phenopacket):
+   """
+   Perfect prediction (Predicted == Ground Truth):
+     - true_positive  == 2
+     - false_positive == 0
+     - false_negative == 0
 
-    evaluator.check_phenotypes(["Phen1", "Phen2"], ground_truth)
-    report = evaluator.report("alice", "exp1", "modelA")
+   Expected confusion_matrix == [[2, 0], [0, 0]]
+   """
+   evaluator = PhenotypeEvaluator()
+   ground_truth_packet = Phenopacket.load_from_file(path_to_true_phenopacket)
 
-    assert report.metadata["TP"] == 2
-    assert report.metadata["FP"] == 0
-    assert report.metadata["FN"] == 0
+   predicted_labels = ["Phen1", "Phen2"]
+   evaluator.check_phenotypes(predicted_labels, ground_truth_packet)
+   report = evaluator.report(creator="alice", experiment="exp1", model="modelA")
 
-
-def test_perfect_prediction_metrics(phenopacket_path):
-    """
-    When predictions exactly match ground truth,
-    precision, recall, and f1_score should all be 1.0.
-    """
-    evaluator = PhenotypeEvaluator()
-    ground_truth = Phenopacket.load_from_file(phenopacket_path)
-
-    evaluator.check_phenotypes(["Phen1", "Phen2"], ground_truth)
-    metrics = evaluator.report("alice", "exp1", "modelA").metrics
-
-    assert metrics["precision"] == pytest.approx(1.0)
-    assert metrics["recall"] == pytest.approx(1.0)
-    assert metrics["f1_score"] == pytest.approx(1.0)
+   assert report.metadata["true_positive"] == 2
+   assert report.metadata["false_positive"] == 0
+   assert report.metadata["false_negative"] == 0
+   assert report.confusion_matrix == [[2, 0], [0, 0]]
 
 
-def test_perfect_prediction_classification_report(phenopacket_path):
-    """
-    The classification_report output should include 'present' and 'absent' labels.
-    """
-    evaluator = PhenotypeEvaluator()
-    ground_truth = Phenopacket.load_from_file(phenopacket_path)
+def test_perfect_prediction_metrics_and_report_text(path_to_true_phenopacket):
+   """
+   Perfect prediction yields:
+     precision == 1.0
+     recall    == 1.0
+     f1_score  == 1.0
 
-    evaluator.check_phenotypes(["Phen1", "Phen2"], ground_truth)
-    report_text = evaluator.report("alice", "exp1", "modelA").classification_report
+   classification_report text must include 'present' and 'absent'.
+   """
+   evaluator = PhenotypeEvaluator()
+   ground_truth_packet = Phenopacket.load_from_file(path_to_true_phenopacket)
 
-    assert "present" in report_text
-    assert "absent" in report_text
+   evaluator.check_phenotypes(["Phen1", "Phen2"], ground_truth_packet)
+   report = evaluator.report("alice", "exp1", "modelA")
 
+   metrics = report.metrics
+   assert metrics["precision"] == pytest.approx(1.0)
+   assert metrics["recall"] == pytest.approx(1.0)
+   assert metrics["f1_score"] == pytest.approx(1.0)
 
-def test_false_positive_and_miss(phenopacket_path):
-    """
-    One true positive and one false positive yields TP=1, FP=1, FN=1,
-    and macro metrics of 0.5.
-    """
-    evaluator = PhenotypeEvaluator()
-    ground_truth = Phenopacket.load_from_file(phenopacket_path)
-
-    evaluator.check_phenotypes(["Phen1", "Fake"], ground_truth)
-    report = evaluator.report("bob", "exp2", "modelB")
-    metrics = report.metrics
-
-    assert report.metadata["TP"] == 1
-    assert report.metadata["FP"] == 1
-    assert report.metadata["FN"] == 1
-
-    assert metrics["precision"] == pytest.approx(0.5, rel=1e-6)
-    assert metrics["recall"] == pytest.approx(0.5, rel=1e-6)
-    assert metrics["f1_score"] == pytest.approx(0.5, rel=1e-6)
+   report_text = report.classification_report.lower()
+   assert "present" in report_text
+   assert "absent" in report_text
 
 
-def test_multiple_batches(phenopacket_path, tmp_path):
-    """
-    After two batches (one true-positive/miss, one true-positive/false-positive),
-    total TP=2, FP=1, FN=1 and macro metrics of 2/3.
-    """
-    evaluator = PhenotypeEvaluator()
+def test_false_positive_and_miss_counts_and_metrics(path_to_true_phenopacket):
+   """
+   Predict one correct label and one hallucinated label:
+     - true_positive  == 1
+     - false_positive == 1
+     - false_negative == 1
 
-    # First batch: one correct, one missed
-    ground_truth1 = Phenopacket.load_from_file(phenopacket_path)
-    evaluator.check_phenotypes(["Phen1"], ground_truth1)
+   Expected confusion_matrix == [[1, 1], [1, 0]]
+   Metrics: precision=0.5, recall=0.5, f1_score=0.5
+   """
+   evaluator = PhenotypeEvaluator()
+   ground_truth_packet = Phenopacket.load_from_file(path_to_true_phenopacket)
 
-    # Second batch: one correct, one false positive
-    data2 = {"phenotypicFeatures": [{"type": {"id": "HP:0000001", "label": "Phen1"}}]}
-    p2 = tmp_path / "test2.json"
-    p2.write_text(json.dumps(data2), encoding="utf-8")
-    ground_truth2 = Phenopacket.load_from_file(str(p2))
-    evaluator.check_phenotypes(["Phen1", "Extra"], ground_truth2)
+   evaluator.check_phenotypes(["Phen1", "Fake"], ground_truth_packet)
+   report = evaluator.report("bob", "exp2", "modelB")
 
-    report = evaluator.report("carol", "exp3", "modelC")
-    metadata = report.metadata
-    metrics = report.metrics
+   assert report.metadata["true_positive"] == 1
+   assert report.metadata["false_positive"] == 1
+   assert report.metadata["false_negative"] == 1
+   assert report.confusion_matrix == [[1, 1], [1, 0]]
 
-    assert metadata["TP"] == 2
-    assert metadata["FP"] == 1
-    assert metadata["FN"] == 1
+   metrics = report.metrics
+   assert metrics["precision"] == pytest.approx(0.5)
+   assert metrics["recall"] == pytest.approx(0.5)
+   assert metrics["f1_score"] == pytest.approx(0.5)
 
-    assert metrics["precision"] == pytest.approx(2 / 3, rel=1e-6)
-    assert metrics["recall"] == pytest.approx(2 / 3, rel=1e-6)
-    assert metrics["f1_score"] == pytest.approx(2 / 3, rel=1e-6)
+
+def test_multiple_batches_accumulation(path_to_true_phenopacket, tmp_path):
+   """
+   Two-sample accumulation:
+   1) Sample #1: predict ["Phen1"] vs ground truth ["Phen1","Phen2"]
+      -> TP=1, FP=0, FN=1
+   2) Sample #2: predict ["Phen1","Extra"] vs ground truth ["Phen1"]
+      -> TP+=1, FP+=1, FN+=0
+   Cumulative:
+     true_positive  == 2
+     false_positive == 1
+     false_negative == 1
+   Confusion matrix == [[2, 1], [1, 0]]
+   Metrics == precision=2/3, recall=2/3, f1_score=2/3
+   """
+   evaluator = PhenotypeEvaluator()
+
+   # First sample
+   gt_packet1 = Phenopacket.load_from_file(path_to_true_phenopacket)
+   evaluator.check_phenotypes(["Phen1"], gt_packet1)
+
+   # Second sample
+   data2 = {"phenotypicFeatures": [{"type": {"id": "HP:0000001", "label": "Phen1"}}]}
+   packet2_file = tmp_path / "true_packet2.json"
+   packet2_file.write_text(json.dumps(data2), encoding="utf-8")
+   gt_packet2 = Phenopacket.load_from_file(str(packet2_file))
+   evaluator.check_phenotypes(["Phen1", "Extra"], gt_packet2)
+
+   report = evaluator.report("carol", "exp3", "modelC")
+
+   assert report.metadata["true_positive"] == 2
+   assert report.metadata["false_positive"] == 1
+   assert report.metadata["false_negative"] == 1
+   assert report.confusion_matrix == [[2, 1], [1, 0]]
+
+   metrics = report.metrics
+   assert metrics["precision"] == pytest.approx(2 / 3)
+   assert metrics["recall"] == pytest.approx(2 / 3)
+   assert metrics["f1_score"] == pytest.approx(2 / 3)
