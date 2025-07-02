@@ -1,220 +1,217 @@
+"""
+evaluation.py
+
+Stateful evaluator for LLM-extracted HPO labels.
+
+Tracks true positives (TP), false positives (FP), and false negatives (FN),
+and assembles a Report summarizing performance.
+"""
+
 import logging
 from typing import List, Dict, Any
-from notebooks.utils.phenopacket import Phenopacket
 
-from sklearn.metrics import (
-    classification_report,
-)
+from notebooks.utils.phenopacket import Phenopacket
+from sklearn.metrics import classification_report
 
 logger = logging.getLogger(__name__)
 
 
+class Report:
+   """
+   Stub Report class for PhenotypeEvaluator.report().
+
+   Collects confusion matrix, computed metrics, classification report text,
+   and metadata for evaluation.
+   """
+
+   def __init__(
+           self,
+           creator: str,
+           experiment: str,
+           model: str,
+           tp: int,
+           fp: int,
+           fn: int,
+           **metadata_extra: Any
+   ) -> None:
+       """
+       Initialize a Report stub with counts and metadata.
+
+       Parameters
+       ----------
+       creator : str
+           Identifier of who ran the evaluation.
+       experiment : str
+           Experiment name or ID.
+       model : str
+           Model name or version.
+       tp : int
+           Total true positives.
+       fp : int
+           Total false positives.
+       fn : int
+           Total false negatives.
+       **metadata_extra : Any
+           Additional metadata entries to include.
+       """
+       # Build metadata dict
+       self.metadata: Dict[str, Any] = {
+           "creator": creator,
+           "experiment": experiment,
+           "model": model,
+           "TP": tp,
+           "FP": fp,
+           "FN": fn,
+       }
+       self.metadata.update(metadata_extra)
+
+       # Confusion matrix layout:
+       # [[TP, FP],
+       #  [FN,  0 ]]
+       self.confusion_matrix = [[tp, fp], [fn, 0]]
+
+       # Compute macro precision, recall, and F1 score
+       if tp + fp > 0:
+           precision = tp / (tp + fp)
+       else:
+           precision = 0.0
+
+       if tp + fn > 0:
+           recall = tp / (tp + fn)
+       else:
+           recall = 0.0
+
+       if precision + recall > 0:
+           f1 = 2 * precision * recall / (precision + recall)
+       else:
+           f1 = 0.0
+
+       self.metrics = {
+           "precision": precision,
+           "recall": recall,
+           "f1_score": f1,
+       }
+
+       # Build synthetic y_true/y_pred lists for sklearn's classification_report
+       y_true = [1] * tp + [1] * fn + [0] * fp
+       y_pred = [1] * tp + [0] * fn + [1] * fp
+
+       self.classification_report = classification_report(
+           y_true,
+           y_pred,
+           labels=[1, 0],
+           target_names=["present", "absent"],
+           zero_division=0,
+       )
+
+
 class PhenotypeEvaluator:
-    """
-    Stateful evaluator for LLM-extracted HPO labels.
+   """
+   Stateful evaluator for LLM-extracted HPO labels.
 
-    Tracks:
-        - True Positives (TP): correctly predicted HPO labels.
-        - False Positives (FP): labels predicted but not actually present.
-        - False Negatives (FN): true labels that were missed.
+   Tracks:
+       - True Positives (TP): correctly predicted label presence.
+       - False Positives (FP): predicted labels absent in ground truth.
+       - False Negatives (FN): ground truth labels not predicted.
+   """
 
-    TN is omitted (open vocabulary, infinite negatives).
+   def __init__(self) -> None:
+       """
+       Initialize the evaluator with zeroed counts.
+       """
+       # Private counters to prevent external mutation
+       self._tp = 0
+       self._fp = 0
+       self._fn = 0
 
-    Attributes
-    ----------
-    tp : int
-        Cumulative true positive count.
-    fp : int
-        Cumulative false positive count.
-    fn : int
-        Cumulative false negative count.
-    """
+   @property
+   def tp(self) -> int:
+       """
+       Total true positives accumulated.
+       """
+       return self._tp
 
-    def __init__(self) -> None:
-        self.tp = 0
-        self.fp = 0
-        self.fn = 0
+   @property
+   def fp(self) -> int:
+       """
+       Total false positives accumulated.
+       """
+       return self._fp
 
-    def check_phenotypes(
-        self, hpo_labels: List[str], ground_truth_phenopacket: Phenopacket
-    ) -> None:
-        """
-        Compare one sample’s predicted HPO labels against a ground-truth Phenopacket.
+   @property
+   def fn(self) -> int:
+       """
+       Total false negatives accumulated.
+       """
+       return self._fn
 
-        Parameters
-        ----------
-        hpo_labels : list of str
-            The HPO *label* strings the LLM will extract, e.g. ["Short stature", ...].
-        ground_truth_phenopacket : Phenopacket
-            A loaded Phenopacket instance containing the true labels.
+   def check_phenotypes(
+           self,
+           hpo_labels: List[str],
+           ground_truth_phenopacket: Phenopacket,
+   ) -> None:
+       """
+       Compare one sample's predicted HPO labels against a ground-truth Phenopacket.
 
-        Notes
-        -----
-        - TP = |predicted ∩ true|
-        - FP = |predicted != true|
-        - FN = |true != predicted|
-        """
-        true_hpo_term_set = set(ground_truth_phenopacket.list_phenotypes())
-        experimental_hpo_term_set = set(hpo_labels)
+       Parameters
+       ----------
+       hpo_labels : List[str]
+           The HPO label strings predicted by the LLM.
+       ground_truth_phenopacket : Phenopacket
+           A loaded Phenopacket instance containing the true labels.
 
-        tp = len(true_hpo_term_set & experimental_hpo_term_set)
-        fp = len(experimental_hpo_term_set - true_hpo_term_set)
-        fn = len(true_hpo_term_set - experimental_hpo_term_set)
+       Notes
+       -----
+       - TP = |predicted ? true|
+       - FP = |predicted \\ true|
+       - FN = |true \\ predicted|
+       """
+       true_set = set(ground_truth_phenopacket.list_phenotypes())
+       pred_set = set(hpo_labels)
 
-        logger.debug("Sample evaluation → TP=%d, FP=%d, FN=%d", tp, fp, fn)
+       tp = len(true_set & pred_set)
+       fp = len(pred_set - true_set)
+       fn = len(true_set - pred_set)
 
-        self.tp += tp
-        self.fp += fp
-        self.fn += fn
+       logger.debug("Sample evaluation -> TP=%d, FP=%d, FN=%d", tp, fp, fn)
 
-    def report(
-        self, creator: str, experiment: str, model: str, **metadata_extra: Any
-    ) -> Dict[str, Any]:
-        """
-        Compile the accumulated counts into a full evaluation summary.
+       self._tp += tp
+       self._fp += fp
+       self._fn += fn
 
-        Computes:
-          - confusion_matrix: [[TP, FP], [FN, 0]]
-          - metrics: macro precision, recall, F1
-          - classification_report: per-label table via sklearn
-          - metadata: date-free dict you can JSON-dump or feed into Report later
+   def report(
+           self,
+           creator: str,
+           experiment: str,
+           model: str,
+           **metadata_extra: Any
+   ) -> Report:
+       """
+       Compile the accumulated counts into a Report instance.
 
-        Parameters
-        ----------
-        creator : str
-            Who ran this evaluation.
-        experiment : str
-            Experiment ID or name.
-        model : str
-            Model name or version.
-        **metadata_extra : Any
-            Any additional metadata entries to carry forward.
+       Parameters
+       ----------
+       creator : str
+           Who ran this evaluation.
+       experiment : str
+           Experiment ID or name.
+       model : str
+           Model name or version.
+       **metadata_extra : Any
+           Additional metadata entries to carry forward.
 
-        Returns
-        -------
-        dict with keys:
-          - "confusion_matrix": List[List[int]]
-          - "metrics": {"precision", "recall", "f1_score"}
-          - "classification_report": str
-          - "metadata": dict
-        """
-        """
-        1) Build the confusion matrix structure.
-           Layout:
-               [[TP, FP],
-                [FN,  0 ]]
-           - Row 0: actual positives
-           - Row 1: actual negatives (we set TN=0 because TN is undefined here)
-           - Col 0: predicted positives
-           - Col 1: predicted negatives
-        """
-        confusion_matrix = [
-            [self.tp, self.fp],
-            [self.fn, 0],
-        ]
-
-        """
-        2) Compute precision = TP / (TP + FP).
-           If TP+FP == 0 (no predicted positives), define precision = 0.0 to avoid div-by-zero.
-        """
-        if (self.tp + self.fp) > 0:
-            precision = self.tp / (self.tp + self.fp)
-        else:
-            precision = 0.0
-
-        """
-        3) Compute recall = TP / (TP + FN).
-           If TP+FN == 0 (no actual positives), define recall = 0.0.
-        """
-        if (self.tp + self.fn) > 0:
-            recall = self.tp / (self.tp + self.fn)
-        else:
-            recall = 0.0
-
-        """
-        4) Compute F1 score = 2 * (precision * recall) / (precision + recall).
-           If precision+recall == 0, define f1_score = 0.0.
-        """
-        if (precision + recall) > 0:
-            f1_score = 2 * precision * recall / (precision + recall)
-        else:
-            f1_score = 0.0
-
-        """
-        5) Package precision, recall, and F1 into a metrics dict for easy access.
-        """
-        metrics = {
-            "precision": precision,
-            "recall": recall,
-            "f1_score": f1_score,
-        }
-
-        """
-        6) Construct synthetic y_true and y_pred lists so sklearn's classification_report
-           can generate a per‐label breakdown:
-             - For each TP: (1,1)
-             - For each FN: (1,0)
-             - For each FP: (0,1)
-           Here, '1' means "label present", '0' means "label absent".
-        """
-        y_true = []
-        y_pred = []
-
-        """
-        6a) Add one (1,1) entry for each true positive.
-        """
-        for _ in range(self.tp):
-            y_true.append(1)
-            y_pred.append(1)
-
-        """
-        6b) Add one (1,0) entry for each false negative.
-        """
-        for _ in range(self.fn):
-            y_true.append(1)
-            y_pred.append(0)
-
-        """
-        6c) Add one (0,1) entry for each false positive.
-        """
-        for _ in range(self.fp):
-            y_true.append(0)
-            y_pred.append(1)
-
-        """
-        7) Generate the human-readable classification report text
-           using sklearn.metrics.classification_report.
-           We label the classes "present" and "absent".
-        """
-        class_report_str = classification_report(
-            y_true,
-            y_pred,
-            labels=[1, 0],
-            target_names=["present", "absent"],
-            zero_division=0,
-        )
-
-        """
-        8) Assemble the metadata dict:
-           - always include creator, experiment, model, and the raw TP/FP/FN counts
-           - merge in any additional metadata passed via **metadata_extra
-        """
-        metadata = {
-            "creator": creator,
-            "experiment": experiment,
-            "model": model,
-            "TP": self.tp,
-            "FP": self.fp,
-            "FN": self.fn,
-        }
-        metadata.update(metadata_extra)
-
-        """
-        9) Return everything in one convenient dict.
-        """
-        return {
-            "confuson_matrix": confusion_matrix,
-            "metrics": metrics,
-            "classification_report": class_report_str,
-            "metadata": metadata,
-        }
+       Returns
+       -------
+       Report
+           A Report object summarizing confusion matrix, metrics,
+           classification report, and metadata.
+       """
+       return Report(
+           creator,
+           experiment,
+           model,
+           self._tp,
+           self._fp,
+           self._fn,
+           **metadata_extra
+       )
