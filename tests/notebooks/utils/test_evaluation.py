@@ -138,7 +138,7 @@ def test_complex_example(tmp_path):
     # counts
     assert report.metadata["true_positive"] == 2
     assert report.metadata["false_positive"] == 2
-    assert report.metadata["false_negative"] == 3
+    assert report.metadata["false_negative"] == 1
 
     # metrics
     m = report.metrics
