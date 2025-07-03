@@ -115,12 +115,12 @@ class PhenotypeEvaluator:
 
         # 1) Normalize (strip + lowercase) and build sets
         true_hpo_term_set = {
-            gt_label.strip().lower()
-            for gt_label in ground_truth_phenotypes.list_phenotypes()
+            ground_truth_label.strip().lower()
+            for ground_truth_label in ground_truth_phenotypes.list_phenotypes()
         }
         experimental_hpo_term_set = {
-            pred_label.strip().lower()
-            for pred_label in experimentally_extracted_phenotypes
+            experimental_label.strip().lower()
+            for experimental_label in experimentally_extracted_phenotypes
         }
 
         # 4) Compute intersections and differences by set cardinality
