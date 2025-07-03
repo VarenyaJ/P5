@@ -21,51 +21,8 @@ logger.addHandler(logging.NullHandler())
 
 
 class Report:
-    """
-    Stub Report class for PhenotypeEvaluator.report().
-
-    Collects confusion matrix, computed metrics, classification report text, and metadata for evaluation.
-
-    Attributes
-    ----------
-    metadata : Dict[str, Any]
-        Contains:
-        - creator (str)
-        - experiment (str)
-        - model (str)
-        - date (YYYY-MM-DD)
-        - true_positive (int)
-        - false_positive (int)
-        - false_negative (int)
-        - any extra metadata passed via **metadata_extra
-
-    confusion_matrix : List[List[int]]
-        2x2 matrix:
-            [[TP, FP], [FN,  0]]
-        where:
-            TP = true_positive
-            FP = false_positive
-            FN = false_negative
-        (True negatives undefined -> set to 0.)
-
-    metrics : Dict[str, Optional[float]]
-        Macro-averaged metrics computed as:
-            precision   = TP / (TP + FP)   if denom > 0 else zero_division
-            recall      = TP / (TP + FN)   if denom > 0 else zero_division
-            f1_score    = 2.(precision.recall)/(precision + recall)
-                           if (precision+recall)>0 else zero_division
-
-    classification_report : str
-        Text output from sklearn.metrics.classification_report using synthetic labels:
-        - 'present' class -> positive instances
-        - 'absent'  class -> negative instances
-
-    Notes
-    -----
-    - The TN slot is always zero because the space of "all labels not present"
-      is open-ended.
-    - zero_division controls what to assign when a metric's denominator is zero.
-    """
+    def __init__(self, **kwargs)
+        # Intentionally empty, removing all stuf functionality and saving for the report-class
 
     def __init__(
         self,
