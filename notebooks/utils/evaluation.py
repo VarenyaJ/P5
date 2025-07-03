@@ -4,9 +4,8 @@ evaluation.py
 Stateful evaluator for LLM-extracted HPO labels.
 
 Provides:
-- Report: holds confusion matrix, metrics, classification report, and metadata.
-- PhenotypeEvaluator: collects true_positive, false_positive, false_negative counts
-by comparing predicted labels to a ground truth Phenopacket.
+- Report: a placeholder stub that accepts any kwargs and does nothing, to be replaced by one holding the confusion matrix, metrics, classification report, and metadata.
+- PhenotypeEvaluator: collects true_positive, false_positive, false_negative counts by comparing predicted labels to a ground truth Phenopacket.
 """
 
 import logging
@@ -31,26 +30,16 @@ class PhenotypeEvaluator:
 
     Methods
     -------
-    check_phenotypes(predicted_labels, ground_truth_packet)
+    check_phenotypes(experimentally_extracted_phenotypes, ground_truth_phenotypes)
         Updates internal counts of true_positive, false_positive, false_negative.
     report(creator, experiment, model, **metadata_extra) -> Report
         Constructs and returns a Report summarizing all counts.
     """
 
-    def __init__(self, synonym_map: Optional[Dict[str, str]] = None) -> None:
-        """
-        Initialize counters and optional synonym map.
-
-        Parameters
-        ----------
-        synonym_map : dict, optional
-            Mapping from synonym strings (already lowercase/stripped) to
-            canonical label strings to apply before counting.
-        """
+    def __init__(self) -> None:
         self._true_positive: int = 0
         self._false_positive: int = 0
         self._false_negative: int = 0
-        self._synonym_map = synonym_map or {}
 
     @property
     def true_positive(self) -> int:
@@ -68,37 +57,39 @@ class PhenotypeEvaluator:
         return self._false_negative
 
     def check_phenotypes(
-        self, hpo_labels: List[str], ground_truth_packet: Phenopacket
+        self, experimentally_extracted_phenotypes: List[str], ground_truth_phenotypes: Phenopacket
     ) -> None:
         """
-        Compare a single sample's predicted HPO labels against the ground truth and update counts.
+        Compare one sample’s predicted labels against its ground truth.
 
-        Steps
-        -----
-        1) Normalize each label (strip whitespace, lowercase).
-        2) Map synonyms if present.
-        3) Build sets:
-             true_hpo_term_set         = set(processed ground truth labels)
-             experimental_hpo_term_set = set(processed predicted labels)
-        4) Count via set differences:
-             true_positive  = |true && pred|
-             false_positive = |pred - true|
-             false_negative = |true - pred|
-        5) Accumulate counts internally.
+        Steps:
+            1. Strip leading/trailing whitespace from each label.
+            2. Build a set of ground‐truth labels by calling `list_phenotypes()`.
+            3. Build a set of predicted labels from the provided list.
+            4. Compute:
+                - TP as the size of the intersection.
+                - FP as labels in predicted but not in ground truth.
+                - FN as any ground‐truth labels that were not predicted.
+          5. Add these to the cumulative totals.
+
+        Parameters
+        ----------
+        experimentally_extracted_phenotypes
+            A list of strings output by the model for this sample.
+        ground_truth_phenotypes
+            A Phenopacket whose `list_phenotypes()` returns the true labels.
         """
 
-        def _normalize_and_map(label: str) -> str:
-            norm = label.strip().lower()
-            return self._synonym_map.get(norm, norm)
-
-        true_hpo_term_set = {
-            _normalize_and_map(label) for label in ground_truth_packet.list_phenotypes()
-        }
-        experimental_hpo_term_set = {_normalize_and_map(label) for label in hpo_labels}
+        true_hpo_term_set = {label.strip() for label in ground_truth_phenotypes.list_phenotypes()}
+        experimental_hpo_term_set = {label.strip() for label in experimentally_extracted_phenotypes}
 
         true_positive = len(true_hpo_term_set & experimental_hpo_term_set)
         false_positive = len(experimental_hpo_term_set - true_hpo_term_set)
-        false_negative = len(true_hpo_term_set - experimental_hpo_term_set)
+        false_negative = max(len(true_hpo_term_set) - len(experimental_hpo_term_set), 0)
+
+        self._true_positive += true_positive
+        self._false_positive += false_positive
+        self._false_negative += false_negative
 
         logger.debug(
             "Sample evaluation: TP=%d, FP=%d, FN=%d",
@@ -106,10 +97,6 @@ class PhenotypeEvaluator:
             false_positive,
             false_negative,
         )
-
-        self._true_positive += true_positive
-        self._false_positive += false_positive
-        self._false_negative += false_negative
 
     def report(
         self,
@@ -138,7 +125,7 @@ class PhenotypeEvaluator:
         Returns
         -------
         Report
-            Contains confusion_matrix, metrics, classification_report, and metadata.
+            A placeholder which should be replaced via PR to hold a confusion_matrix, metrics, classification_report, and metadata.
         """
         return Report(
             creator=creator,
