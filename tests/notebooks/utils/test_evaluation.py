@@ -1,31 +1,23 @@
 # tests/notebooks/utils/test_evaluation.py
 
-import json
 import pytest
 from notebooks.utils.evaluation import PhenotypeEvaluator
-from notebooks.utils.phenopacket import Phenopacket
+from unittest.mock import Mock
 
 
 @pytest.fixture
-def path_to_true_phenopacket(tmp_path):
+def mock_ground_truth_packet():
     """
-    Create a minimal ground-truth Phenopacket JSON file with two HPO labels:
-      - "Phen1"
-      - "Phen2"
-    Return the path to that file.
+    A mocked Phenopacket whose `list_phenotypes()` returns two true labels:
+        - "Phen1"
+        - "Phen2"
     """
-    data = {
-        "phenotypicFeatures": [
-            {"type": {"id": "HP:0000001", "label": "Phen1"}},
-            {"type": {"id": "HP:0000002", "label": "Phen2"}},
-        ]
-    }
-    p = tmp_path / "true_packet.json"
-    p.write_text(json.dumps(data), encoding="utf-8")
-    return str(p)
+    mock_packet = Mock()
+    mock_packet.list_phenotypes.return_value = ["Phen1", "Phen2"]
+    return mock_packet
 
 
-def test_perfect_prediction_counts(path_to_true_phenopacket):
+def test_perfect_prediction_counts(mock_ground_truth_packet):
     """
     Perfect prediction:
       predicted = ["Phen1","Phen2"]
@@ -34,16 +26,14 @@ def test_perfect_prediction_counts(path_to_true_phenopacket):
     -> TP=2, FP=0, FN=0
     """
     evaluator = PhenotypeEvaluator()
-    ground_truth = Phenopacket.load_from_file(path_to_true_phenopacket)
-
-    evaluator.check_phenotypes(["Phen1", "Phen2"], ground_truth)
+    evaluator.check_phenotypes(["Phen1", "Phen2"], mock_ground_truth_packet)
 
     assert evaluator.true_positive == 2
     assert evaluator.false_positive == 0
     assert evaluator.false_negative == 0
 
 
-def test_normalization_and_whitespace(path_to_true_phenopacket):
+def test_normalization_and_whitespace(mock_ground_truth_packet):
     """
     Whitespace and case should be ignored:
       predicted = [" PHEN1 ", "phen2"]
@@ -52,16 +42,14 @@ def test_normalization_and_whitespace(path_to_true_phenopacket):
     -> still TP=2, FP=0, FN=0
     """
     evaluator = PhenotypeEvaluator()
-    ground_truth = Phenopacket.load_from_file(path_to_true_phenopacket)
-
-    evaluator.check_phenotypes([" PHEN1 ", "phen2"], ground_truth)
+    evaluator.check_phenotypes([" PHEN1 ", "phen2"], mock_ground_truth_packet)
 
     assert evaluator.true_positive == 2
     assert evaluator.false_positive == 0
     assert evaluator.false_negative == 0
 
 
-def test_complex_example(tmp_path):
+def test_complex_example(mock_ground_truth_packet):
     """
     Ground truth = {A, B, C, E, X}
     Predicted    = {A, B, D, F}
@@ -71,26 +59,16 @@ def test_complex_example(tmp_path):
     - ground truth has 5 slots, but only 4 predictions -> FN=1
       (exactly one true label was never predicted)
     """
-    labels_ground_truth = ["A", "B", "C", "E", "X"]
-    data = {
-        "phenotypicFeatures": [
-            {"type": {"id": f"HP:{i:07d}", "label": lbl}}
-            for i, lbl in enumerate(labels_ground_truth, start=1)
-        ]
-    }
-    p = tmp_path / "example.json"
-    p.write_text(json.dumps(data), encoding="utf-8")
-    ground_truth = Phenopacket.load_from_file(str(p))
-
+    mock_ground_truth_packet.list_phenotypes.return_value = ["A", "B", "C", "E", "X"]
     evaluator = PhenotypeEvaluator()
-    evaluator.check_phenotypes(["A", "B", "D", "F"], ground_truth)
+    evaluator.check_phenotypes(["A", "B", "D", "F"], mock_ground_truth_packet)
 
     assert evaluator.true_positive == 2
     assert evaluator.false_positive == 2
     assert evaluator.false_negative == 1
 
 
-def test_single_truth_no_prediction(tmp_path):
+def test_single_truth_no_prediction(mock_ground_truth_packet):
     """
     Single-label ground truth with no predictions:
         - ground truth = ["Z"]
@@ -101,15 +79,11 @@ def test_single_truth_no_prediction(tmp_path):
         - FP = 0  (no predictions at all)
         - FN = 1  (the one true label "Z" was never predicted)
     """
-    # build a Phenopacket JSON containing exactly one label "Z"
-    data = {"phenotypicFeatures": [{"type": {"id": "HP:0000001", "label": "Z"}}]}
-    p = tmp_path / "single_truth.json"
-    p.write_text(json.dumps(data), encoding="utf-8")
-    ground_truth = Phenopacket.load_from_file(str(p))
-
+    # drive everything off the mock: single true label "Z", no predictions
+    mock_ground_truth_packet.list_phenotypes.return_value = ["Z"]
     evaluator = PhenotypeEvaluator()
     # no predictions provided
-    evaluator.check_phenotypes([], ground_truth)
+    evaluator.check_phenotypes([], mock_ground_truth_packet)
 
     # verify that the lone true label counts as a false negative
     assert evaluator.true_positive == 0

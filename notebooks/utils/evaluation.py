@@ -8,9 +8,9 @@ Provides:
 - PhenotypeEvaluator: collects true_positive, false_positive, false_negative counts by comparing predicted labels to a ground truth Phenopacket.
 
 Definitions:
- - true_positive = a predicted label that exactly matches a label in the ground-truth set
- - false_positive = a predicted label that does not appear in the ground-truth set
- - false_negative = a ground-truth label that the model failed to predict, excluding false_positive
+- true_positive = a predicted label that exactly matches a label in the ground-truth set
+- false_positive = a predicted label that does not appear in the ground-truth set
+- false_negative = a ground-truth label that the model failed to predict, excluding false_positive
 """
 
 import logging
@@ -85,7 +85,7 @@ class PhenotypeEvaluator:
             2. Build a set of ground-truth labels by calling `list_phenotypes()`.
             3. Build a set of predicted labels from the provided list.
             4. Compute:
-                - TP as true_hpo_term_set ∩ experimental_hpo_term_set
+                - TP as true_hpo_term_set ? experimental_hpo_term_set
                 - FP as labels in experimental_hpo_term_set but not in true_hpo_term_set
                 - FN as any true_hpo_term_set labels that were not predicted
             5. Add these to the cumulative totals.
