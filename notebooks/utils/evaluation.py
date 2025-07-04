@@ -19,7 +19,6 @@ from typing import List, Any, Optional
 from notebooks.utils.phenopacket import Phenopacket
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 
 class Report:
