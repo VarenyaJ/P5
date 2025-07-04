@@ -78,39 +78,25 @@ class PhenotypeEvaluator:
         ground_truth_phenotypes: Phenopacket,
     ) -> None:
         """
-        Compare one sample's predicted labels against its ground truth and update the running true_positive, false_positive, and false_negative counters.
+        Compare a sample's predicted labels against its ground truth and update the running true_positive, false_positive, and false_negative counters.
 
-        Definitions:
-            - true_positive (TP):  a predicted label that exactly matches a label in the ground-truth set.
-            - false_positive (FP): a predicted label that does *not* appear in the ground-truth set.
-            - false_negative (FN): a ground-truth label that the model completely failed to predict (i.e. truth has more slots than the number of predictions).
+        Steps:
+            1. Strip leading/trailing whitespace from each label.
+            2. Build a set of ground-truth labels by calling `list_phenotypes()`.
+            3. Build a set of predicted labels from the provided list.
+            4. Compute:
+                - TP as true_hpo_term_set ∩ experimental_hpo_term_set
+                - FP as labels in experimental_hpo_term_set but not in true_hpo_term_set
+                - FN as any true_hpo_term_set labels that were not predicted
+            5. Add these to the cumulative totals.
 
-        Steps
-        -----
-        1. Normalize values:
-            - Strip whitespace and lowercase each label so that: " Phen1 " -> "phen1" and "phen1" -> "phen1"
-        2. Build two sets:
-            - true_hpo_term_set         = set of normalized ground-truth labels
-            - experimental_hpo_term_set = set of normalized predicted labels
-        3. Cardinality vs. length:
-            - cardinality of a set S (notation |S|) = count of *unique* elements in S
-            - len(list) may count duplicates, but we use set() so duplicates collapse
-        4. Compute counts by set-algebra and cardinality arithmetic:
-            TP = | true_hpo_term_set ? experimental_hpo_term_set |
-                - the number of exact matches
-            FP = | experimental_hpo_term_set - true_hpo_term_set |
-                - the number of predicted labels never seen in truth
-            FN = max( |true_hpo_term_set| - |experimental_hpo_term_set|, 0 )
-                - if the model returned fewer unique labels than there are in truth, the difference is how many truth-only "slots" were never predicted; otherwise 0.
-        5. Accumulate these into the evaluator's totals.
-
-        Special case example:
-            truth = ["Z"] -> true_hpo_term_set = {"z"}
-            pred  = []    -> experimental_hpo_term_set = set()
-            TP = 0
-            FP = 0
-            FN = max(1 - 0, 0) = 1
-        """
+            Parameters
+            ----------
+            experimentally_extracted_phenotypes
+                The raw list of labels produced by the model for this sample.
+            ground_truth_phenotypes
+                A Phenopacket object whose `list_phenotypes()` method returns the true labels.
+            """
 
         # 1) Normalize (strip + lowercase) and build sets
         true_hpo_term_set = {
