@@ -96,14 +96,14 @@ class PhenotypeEvaluator:
                 The raw list of labels produced by the model for this sample.
             ground_truth_phenotypes
                 A Phenopacket object whose `list_phenotypes()` method returns the true labels.
-            """
+        """
 
         # 1) Normalize (strip + lowercase) and build sets
         true_hpo_term_set = {
-            label.strip() for label in ground_truth_phenotypes.list_phenotypes()
+            label.strip().lower() for label in ground_truth_phenotypes.list_phenotypes()
         }
         experimental_hpo_term_set = {
-            label.strip() for label in experimentally_extracted_phenotypes
+            label.strip().lower() for label in experimentally_extracted_phenotypes
         }
 
         # 4) Compute intersections and differences by set cardinality
