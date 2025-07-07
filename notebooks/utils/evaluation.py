@@ -21,6 +21,7 @@ from notebooks.utils.report import Report
 
 logger = logging.getLogger(__name__)
 
+
 class PhenotypeEvaluator:
     """
     Accumulates HPO-extraction evaluation counts across multiple samples.
