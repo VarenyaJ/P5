@@ -143,6 +143,7 @@ class PhenotypeEvaluator:
             true_positive=self._true_positive,
             false_positive=self._false_positive,
             false_negative=self._false_negative,
+            true_negative=0,
             zero_division=zero_division,
             **metadata_extra
         )
