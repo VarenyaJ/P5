@@ -85,7 +85,6 @@ class PhenotypeEvaluator:
                 A Phenopacket object whose `list_phenotypes()` method returns the true labels.
         """
 
-        # Normalize (strip + lowercase) and build sets
         true_hpo_term_set = {
             label.strip().lower() for label in ground_truth_phenotypes.list_phenotypes()
         }
@@ -93,17 +92,14 @@ class PhenotypeEvaluator:
             label.strip().lower() for label in experimentally_extracted_phenotypes
         }
 
-        # Compute intersections and differences by set cardinality
         true_positive = len(true_hpo_term_set & experimental_hpo_term_set)
         false_positive = len(experimental_hpo_term_set - true_hpo_term_set)
         false_negative = max(len(true_hpo_term_set) - len(experimental_hpo_term_set), 0)
 
-        # Update cumulative counters
         self._true_positive += true_positive
         self._false_positive += false_positive
         self._false_negative += false_negative
 
-        # debug log of this sample's counts
         logger.debug(
             "Sample evaluation: TP=%d, FP=%d, FN=%d",
             true_positive,
