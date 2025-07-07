@@ -124,3 +124,4 @@ def test_save_and_load(tmp_path, sample_counts):
    # metadata fields preserved
    for fld in ("creator", "experiment", "model"):
        assert rpt2.metadata[fld] == rpt.metadata[fld]
+    #
