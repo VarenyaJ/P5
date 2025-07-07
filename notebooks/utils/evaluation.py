@@ -17,28 +17,9 @@ import logging
 from typing import List, Any, Optional
 
 from notebooks.utils.phenopacket import Phenopacket
+from notebooks.utils.report import Report
 
 logger = logging.getLogger(__name__)
-
-
-class Report:
-    def __init__(self, **kwargs):
-        """
-        Intentionally empty, removing all stuf functionality and saving for the report-class
-        Placeholder stub for a future reporting class.
-
-        This constructor accepts arbitrary keyword arguments but does nothing with them.
-            In a follow-up PR, Report will be expanded to:
-            - store the confusion matrix (TP, FP, FN, TN)
-            - compute precision, recall, and F1
-            - render a classification report string
-            - include user-provided metadata (creator, experiment, model, etc.)
-
-        Until then, this empty stub satisfies type checks and allows evaluator.report()
-        calls to succeed without errors.
-        """
-        pass
-
 
 class PhenotypeEvaluator:
     """
@@ -126,24 +107,21 @@ class PhenotypeEvaluator:
             Experiment name or ID.
         model : str
             Model name or version.
-        zero_division : float or None
-            Passed through to Report for undefined metric behavior.
         metadata_extra : Any
             Additional metadata entries to include.
 
         Returns
         -------
         Report
-            A placeholder which should be replaced via PR to hold a confusion_matrix, metrics, classification_report, and metadata.
+            Pass the confusion_matrix, metrics, classification_report, and metadata into the real Report.
         """
         return Report(
-            creator=creator,
-            experiment=experiment,
-            model=model,
             true_positive=self._true_positive,
             false_positive=self._false_positive,
             false_negative=self._false_negative,
             true_negative=0,
-            zero_division=zero_division,
+            creator=creator,
+            experiment=experiment,
+            model=model,
             **metadata_extra
         )
