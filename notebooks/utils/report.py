@@ -222,19 +222,3 @@ class Report:
         return rpt
 
 
-"""
-Will one day replace "return Report(**kwargs)" in the evaluation with:
-
-return Report(
-   true_positive=self._true_positive,
-   false_positive=self._false_positive,
-   false_negative=self._false_negative,
-   true_negative=0,            # or however you we will supply TN, if we want to
-   creator=creator,
-   experiment=experiment,
-   model=model,
-   **metadata_extra
-)
-
-"""
-#
