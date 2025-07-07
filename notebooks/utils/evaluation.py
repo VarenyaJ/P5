@@ -29,10 +29,10 @@ class Report:
 
         This constructor accepts arbitrary keyword arguments but does nothing with them.
             In a follow-up PR, Report will be expanded to:
-        - store the confusion matrix (TP, FP, FN, TN)
-        - compute precision, recall, and F1
-        - render a classification report string
-        - include user-provided metadata (creator, experiment, model, etc.)
+            - store the confusion matrix (TP, FP, FN, TN)
+            - compute precision, recall, and F1
+            - render a classification report string
+            - include user-provided metadata (creator, experiment, model, etc.)
 
         Until then, this empty stub satisfies type checks and allows evaluator.report()
         calls to succeed without errors.
@@ -59,17 +59,14 @@ class PhenotypeEvaluator:
 
     @property
     def true_positive(self) -> int:
-        """Total true positives accumulated so far."""
         return self._true_positive
 
     @property
     def false_positive(self) -> int:
-        """Total false positives accumulated so far."""
         return self._false_positive
 
     @property
     def false_negative(self) -> int:
-        """Total false negatives accumulated so far."""
         return self._false_negative
 
     def check_phenotypes(
@@ -80,16 +77,6 @@ class PhenotypeEvaluator:
         """
         Compare a sample's predicted labels against its ground truth and update the running true_positive, false_positive, and false_negative counters.
 
-        Steps:
-            1. Strip leading/trailing whitespace from each label.
-            2. Build a set of ground-truth labels by calling `list_phenotypes()`.
-            3. Build a set of predicted labels from the provided list.
-            4. Compute:
-                - TP as true_hpo_term_set ? experimental_hpo_term_set
-                - FP as labels in experimental_hpo_term_set but not in true_hpo_term_set
-                - FN as any true_hpo_term_set labels that were not predicted
-            5. Add these to the cumulative totals.
-
             Parameters
             ----------
             experimentally_extracted_phenotypes
@@ -98,7 +85,7 @@ class PhenotypeEvaluator:
                 A Phenopacket object whose `list_phenotypes()` method returns the true labels.
         """
 
-        # 1) Normalize (strip + lowercase) and build sets
+        # Normalize (strip + lowercase) and build sets
         true_hpo_term_set = {
             label.strip().lower() for label in ground_truth_phenotypes.list_phenotypes()
         }
@@ -106,17 +93,12 @@ class PhenotypeEvaluator:
             label.strip().lower() for label in experimentally_extracted_phenotypes
         }
 
-        # 4) Compute intersections and differences by set cardinality
-        #    |A ? B| gives number of exact matches
+        # Compute intersections and differences by set cardinality
         true_positive = len(true_hpo_term_set & experimental_hpo_term_set)
-
-        #    |B - A| gives number of predicted labels not in truth
         false_positive = len(experimental_hpo_term_set - true_hpo_term_set)
-
-        #    if |true| > |pred|, the excess truth slots were never filled -> FN
         false_negative = max(len(true_hpo_term_set) - len(experimental_hpo_term_set), 0)
 
-        # 5) Update cumulative counters
+        # Update cumulative counters
         self._true_positive += true_positive
         self._false_positive += false_positive
         self._false_negative += false_negative
