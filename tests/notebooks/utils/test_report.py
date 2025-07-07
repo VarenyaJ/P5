@@ -16,12 +16,7 @@ def sample_counts():
       y_true  = [1,1,0,1]  # TPx2, TNx0, FNx1, FPx1
       y_pred  = [1,1,1,0]  # TPx2, TNx0, FNx0, FPx1
     """
-    return dict(
-        true_positive=2,
-        false_positive=1,
-        false_negative=1,
-        true_negative=0,
-    )
+    return dict(true_positive=2, false_positive=1, false_negative=1, true_negative=0)
 
 
 def test_report_initialization_and_confusion_matrix(sample_counts):
