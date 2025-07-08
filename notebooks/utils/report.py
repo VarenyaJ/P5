@@ -1,13 +1,6 @@
 # notebooks/utils/report.py
 
 """
-report.py
-
-- true_positive  (TP): a predicted label that exactly matches a label in the ground-truth set
-- false_positive (FP): a predicted label that does not appear in the ground-truth set
-- false_negative (FN): a ground-truth label that the model failed to predict
-- true_negative  (TN): *labels not in ground-truth that the model also did not predict - this is always infinite in our open-world formulation, so in practice we set TN to 0 as a placeholder
-
 Computes:
     - precision =   TP / (TP + FP)
     - recall    =   TP / (TP + FN)
@@ -18,14 +11,6 @@ Computes:
         - model
         - date
         - any extra keywords passed in.
-
-Key methods:
-    __init__            : Accepts raw counts + metadata, builds everything in memory.
-    get_metrics         : Returns {"precision", "recall", "f1_score"}.
-    get_metric          : Returns a single metric.
-    __str__             : Renders the sklearn classification_report table.
-    save                : Dumps all fields to a JSON file.
-    @staticmethod load  : Reads that JSON back and reconstructs a Report.
 """
 
 import json
@@ -63,13 +48,13 @@ class Report:
         Parameters
         ----------
         true_positive : int
-            Number of exact matches (predicted ? truth).
+            Number of exact matches between predicted labels and the ground-truth set.
         false_positive : int
             Number of predictions not in the ground truth.
         false_negative : int
             Number of ground-truth labels never predicted.
         true_negative : int
-            Number of "negatives" correctly not predicted.  (Usually zero in open-ended label space.)
+            Number of "negatives" correctly not predicted. (Usually infinite in our open-world formulation, so in practice we set TN to 0 as a placeholder.)
         creator : str
             Identifier of who ran the evaluation.
         experiment : str
