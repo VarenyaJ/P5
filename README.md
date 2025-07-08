@@ -37,7 +37,7 @@ eval "$(mamba shell hook --shell bash)" || echo 'no mamba :('
 cd $HOME
 git clone https://github.com/VarenyaJ/P5.git
 cd $HOME/P5/
-git checkout exp/prioritize-conda
+git checkout main
 
 # 1. Clear caches
 conda clean --all -y
