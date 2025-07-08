@@ -1,4 +1,9 @@
-### Install Conda
+# P5
+Prompt-driven Parsing of Prenatal PDFs to Phenopackets
+
+# via https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda
+
+## Install Conda
 ```bash
 mkdir -p $HOME/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-<YOUR_SYSTEM>.sh -O $HOME/miniconda3/miniconda.sh
@@ -23,11 +28,11 @@ conda update -n base -c defaults conda && conda install -n base -c conda-forge m
 # 3. Initialize conda
 eval "$(conda shell.bash hook)" || echo 'no conda :('
 
-# 4. Initialize mamba
+# 4. OPTIONAL: Initialize mamba
 eval "$(mamba shell hook --shell bash)" || echo 'no mamba :('
 ```
 +
-### Setup Project
+## Setup Project
 ```bash
 cd $HOME
 git clone https://github.com/VarenyaJ/P5.git
@@ -43,7 +48,7 @@ conda deactivate
 conda env remove -n p5 -y
 
 # 3. Create new env
-mamba env create -f requirements/environment.yml -n p5
+conda env create -f requirements/environment.yml -n p5 || mamba env create -f requirements/environment.yml -n p5
 
 # 4. Validate smoke test
 conda activate p5
@@ -53,9 +58,13 @@ print("OK:", type(docling), selenium.__version__)
 EOF
 
 pytest --maxfail=1 -q
+```
++
+# TODO:
 
-# 5. Install lock tool & generate lock
-mamba install -n p5 -c conda-forge conda-lock -y
+### 5. Install lock tool & generate lock
+```
+conda install -n p5 -c conda-forge conda-lock -y || mamba install -n p5 -c conda-forge conda-lock -y
 conda-lock lock -f requirements/environment.yml \
  -p linux-64 -p osx-64 -p osx-arm64
 ```
@@ -67,12 +76,12 @@ Conjure Dark Magics to make sure the conda-lock works and that there are no rand
 +
 ### Create lock
 ```bash
-mamba env create --yes -f requirements/environment.yml
+conda env create --yes -f requirements/environment.yml || mamba env create --yes -f requirements/environment.yml
 conda-lock lock -f requirements/environment.yml -p linux-64 -p osx-64 -p win-64 --name p5
 ```
 +
 Commit the generated lock files and update them via:
 ```bash
-mamba env update --yes -f requirements/environment.yml
+conda env update --yes -f requirements/environment.yml || mamba env update --yes -f requirements/environment.yml
 conda-lock lock --update-lock-file
 ```
