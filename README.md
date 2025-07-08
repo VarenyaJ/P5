@@ -1,7 +1,7 @@
 # P5
 Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 
-# via https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda
+* adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda
 
 ## Install Conda
 ```bash
