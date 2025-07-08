@@ -33,7 +33,6 @@ def test_report_initialization_and_confusion_matrix(sample_counts):
         notes="unit test"
     )
 
-    # Metadata
     meta = rpt.metadata
     assert meta["creator"] == "tester"
     assert meta["experiment"] == "exp1"
@@ -96,7 +95,6 @@ def test_save_and_load(tmp_path, sample_counts):
     out = tmp_path / "report.json"
     rpt.save(str(out))
 
-    # JSON must contain our top-level keys
     data = json.loads(out.read_text(encoding="utf-8"))
     for key in (
         "true_positive",
@@ -110,13 +108,11 @@ def test_save_and_load(tmp_path, sample_counts):
     ):
         assert key in data
 
-    # load and re-compare
     rpt2 = Report.load(str(out))
-    # counts -> reflected in confusion_matrix
+
     assert rpt2.confusion_matrix == rpt.confusion_matrix
-    # metrics identical
+
     assert rpt2.metrics == rpt.metrics
-    # metadata fields preserved
+
     for fld in ("creator", "experiment", "model"):
         assert rpt2.metadata[fld] == rpt.metadata[fld]
-    #

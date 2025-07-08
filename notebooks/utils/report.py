@@ -177,7 +177,6 @@ class Report:
             creator=data["metadata"]["creator"],
             experiment=data["metadata"]["experiment"],
             model=data["metadata"]["model"],
-            # round-trip any extra metadata
             **{
                 k: v
                 for k, v in data["metadata"].items()
