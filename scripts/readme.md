@@ -1,3 +1,5 @@
+#### To run these commands, please go to P5/scripts. The generated folders will be within the 'P5/scripts/data/' subdirectory, not 'P5/data/'
+
 ### Pull phenopackets
 To pull all the phenopackets from Phenopacket store run:
 ```shell
