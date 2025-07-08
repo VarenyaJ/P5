@@ -1,7 +1,7 @@
 # P5
 Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 
-# via https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda
+#
 
 ## Install Conda
 ```bash
@@ -85,3 +85,63 @@ Commit the generated lock files and update them via:
 conda env update --yes -f requirements/environment.yml || mamba env update --yes -f requirements/environment.yml
 conda-lock lock --update-lock-file
 ```
+
+
+## Experimental: Direct Mamba installation from Miniforge, bypassing Conda
+# P5
+Prompt-driven Parsing of Prenatal PDFs to Phenopackets
+
+## Install Miniforge (Recommended)
+mkdir -p $HOME/miniforge3
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh -O $HOME/miniforge3/miniforge.sh
+bash $HOME/miniforge3/miniforge.sh -b -u -p $HOME/miniforge3
+rm $HOME/miniforge3/miniforge.sh
+source $HOME/.bashrc
+source $HOME/miniforge3/bin/activate
+mamba init --all
+mamba --version
+mamba info
+
+## Setup Environment Manager
+# 1. Activate Shell Integration
+source $HOME/.bashrc && source $HOME/miniforge3/bin/activate && source $HOME/.bashrc && mamba init --all && mamba --version && mamba info && mamba env list && which mamba && mamba --version
+
+# 2. Configure Channels
+mamba config --add channels conda-forge
+mamba config --set channel_priority strict
+
+# 3. Initialize Shell Integration
+eval "$(mamba shell hook --shell bash)" || echo 'no mamba :('
+
+## Setup Project
+cd $HOME
+git clone https://github.com/VarenyaJ/P5.git
+cd $HOME/P5/
+git checkout exp/prioritize-conda
+
+# 1. Clear Caches
+mamba clean --all -y
+pip cache purge
+
+# 2. Remove Old Environment
+mamba deactivate
+mamba env remove -n p5 -y
+
+# 3. Create New Environment
+mamba create --yes -f requirements/environment.yml -n p5
+
+# 4. Validate Installation
+mamba activate p5
+python - <<EOF
+import docling, selenium
+print("OK:", type(docling), selenium.__version__)
+EOF
+pytest --maxfail=1 -q
+
+## Create Lock File
+conda-lock lock -f requirements/environment.yml \
+-p linux-64 -p osx-64 -p win-64 --name p5
+
+## Update Environment
+mamba env update --yes -f requirements/environment.yml
+conda-lock lock --update-lock-file
