@@ -75,7 +75,7 @@ conda env create --yes -f requirements/environment.yml || mamba env create --yes
 conda-lock lock -f requirements/environment.yml -p linux-64 -p osx-64 -p win-64 --name p5
 ```
 
-Commit the generated lock files and update them via:
+### Commit the generated lock files and update them via:
 ```bash
 conda env update --yes -f requirements/environment.yml || mamba env update --yes -f requirements/environment.yml
 conda-lock lock --update-lock-file
