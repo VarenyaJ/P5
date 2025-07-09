@@ -5,6 +5,7 @@
     <option name="enabledOnReformat" value="true" />
     <option name="enabledOnSave" value="true" />
     <option name="sdkName" value="Python 3.13" />
+    <option name="sdkName" value="P5" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="p5" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="P5" project-jdk-type="Python SDK" />
 </project>
