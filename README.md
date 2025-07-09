@@ -1,7 +1,7 @@
 # P5
 Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 
-* adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda
+- **adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda**
 
 ## Install Conda
 ```bash
@@ -31,7 +31,7 @@ eval "$(conda shell.bash hook)" || echo 'no conda :('
 # 4. OPTIONAL: Initialize mamba
 eval "$(mamba shell hook --shell bash)" || echo 'no mamba :('
 ```
-+
+
 ## Setup Project
 ```bash
 cd $HOME
@@ -59,7 +59,7 @@ EOF
 
 pytest --maxfail=1 -q
 ```
-+
+
 # TODO:
 
 ### 5. Install lock tool & generate lock
