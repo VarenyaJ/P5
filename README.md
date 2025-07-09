@@ -85,6 +85,8 @@ conda-lock lock --update-lock-file
 Ensure ´https://repo.anaconda.com/´ is not blocked by your IT/ISP/DNS provider
     -   e.g. "UnavailableInvalidChannel: HTTP 403 FORBIDDEN for channel pkgs/main <https://repo.anaconda.com/pkgs/main>"
 
+If you work at a university like the Charité, you should probably switch to the "Eduroam" wireless network to install conda, and then you can switch back to your preferred wireless/LAN network for pip installation and use of this package
+
 You may need to trust your organization's CA:
 ```bash
 # Install/upda--te certifi in your base environment:
