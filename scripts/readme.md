@@ -34,7 +34,7 @@ Uses the script file_to_phenopacket to take every PDF in the folder and pmid_pdf
 
 Create a CSV file with columns *PMID, PMID PDF file path, and phenopacket file path*.
 ```shell
-python -m scripts.create_phenopacket_dataset "<P5/scripts/data/tmp/phenopacket_store/pmid_pdfs>" "<P5/scripts/data/tmp/phenopacket_store/notebooks>" "<P5/scripts/data/tmp/out.csv>" --recursive_ground_truth_dir True
+python -m scripts.create_phenopacket_dataset "scripts/data/tmp/phenopacket_store/pmid_pdfs" "scripts/data/tmp/phenopacket_store/notebooks" "scripts/data/tmp/PMID_PDF_Phenopacket_list_in_phenopacket_store.csv" --recursive_ground_truth_dir True
 ```
 
 # <span style="color:orange">BELOW NOT CURRENTLY PART OF THE PIPELINE</span>
