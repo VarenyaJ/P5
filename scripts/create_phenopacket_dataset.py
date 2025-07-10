@@ -63,7 +63,7 @@ def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, l
 )
 @click.argument("input_data_dir", type=click.Path(exists=True))
 @click.argument("ground_truth_files_dir", type=click.Path(exists=True))
-@click.argument("dataset_out_dir", type=click.Path())
+@click.argument("dataset_out_dir", type=click.Path(exists=False))
 @click.option("--recursive_input_dir", type=click.BOOL)
 @click.option("--recursive_ground_truth_dir", type=click.BOOL)
 def create_phenopacket_dataset(

@@ -32,9 +32,9 @@ Uses the script file_to_phenopacket to take every PDF in the folder and pmid_pdf
 
 ### Create "Real Phenopacket VS LLM Output" comparison table
 
-Create a CSV file with columns *PMID, LLM output file path, phenopacket file path* whenever we have a LLM output VS real phenopacket pair.
+Create a CSV file with columns *PMID, PMID PDF file path, and phenopacket file path*.
 ```shell
-python -m scripts.create_phenopacket_dataset "data/tmp/phenopacket_store/notebooks" "data/tmp/phenopacket_store/llm_output_dir" "./data/tmp/phenopacket_store/phenopacket_dataset.csv" --recursive_ground_truth_dir True
+python -m scripts.create_phenopacket_dataset "<P5/scripts/data/tmp/phenopacket_store/pmid_pdfs>" "<P5/scripts/data/tmp/phenopacket_store/notebooks>" "<P5/scripts/data/tmp/out.csv>" --recursive_ground_truth_dir True
 ```
 
 # <span style="color:orange">BELOW NOT CURRENTLY PART OF THE PIPELINE</span>
