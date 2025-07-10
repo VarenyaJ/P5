@@ -1,12 +1,12 @@
 #### To run these commands, please go to P5/scripts. The generated folders will be within the 'P5/scripts/data/' subdirectory, not 'P5/data/'
 
-### Pull phenopackets
+### 1) Pull phenopackets
 To pull all the phenopackets from Phenopacket store run:
 ```shell
 python -m pull_git_files "data/tmp/phenopacket_store" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
 ```
 
-### create_pmid_pkl script
+### 2) create_pmid_pkl script
 Run: 
 ```shell
 python -m create_pmid_pkl "data/tmp/phenopacket_store/notebooks" "data/tmp/phenopacket_store/pmids.pkl" "--recursive_dir_search"
@@ -14,14 +14,14 @@ python -m create_pmid_pkl "data/tmp/phenopacket_store/notebooks" "data/tmp/pheno
 This will look at every filename in the directory *data/tmp/phenopacket_store/notebooks*, and whenever a filename contains a string of the form
 "PMID_{1-8 digits}", that PMID will be added to the .pkl file *data/tmp/phenopacket_store/pmids.pkl*. 
 
-### PMID downloader script
+### 3) PMID downloader script
 Run: 
 ```shell
 python -m PMID_downloader "data/tmp/phenopacket_store/pmids.pkl" "data/tmp/phenopacket_store/pmid_pdfs" "0"
 ```
 For every PMID in the .pkl file, a PDF will be downloaded to the directory *data/tmp/phenopacket_store/pmid_pdfs* whenever this is possible (i.e. whenever there is a valid PMCID). 
 
-### Create LLM output files <span style="color:orange">(DOES NOT EXIST YET... OUTPUT FILES = E.G. HPO TERMS OR PHENOPACKETS)</span>
+### 4) Create LLM output files <span style="color:orange">(DOES NOT EXIST YET... OUTPUT FILES = E.G. HPO TERMS OR PHENOPACKETS)</span>
 
 Run: 
 ```shell
@@ -30,7 +30,7 @@ python -m scripts.llm_output "data/tmp/phenopacket_store/pmid_pdfs" "data/tmp/ph
 
 Uses the script file_to_phenopacket to take every PDF in the folder and pmid_pdfs and outputs some sort of LLM generated response to files named PMID_1234567.something
 
-### Create "Real Phenopacket VS LLM Output" comparison table
+### 5) Create "Real Phenopacket VS LLM Output" comparison table
 
 Create a CSV file with columns *PMID, PMID PDF file path, and phenopacket file path*.
 ```shell
