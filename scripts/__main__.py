@@ -40,7 +40,7 @@ def cli(ctx, verbose):
 
         # 1) Pull phenopackets
         pull_git_files.callback(
-            "data/tmp/phenopacket_store",
+            "scripts/data/tmp/phenopacket_store",
             "https://github.com/monarch-initiative/phenopacket-store",
             "notebooks"
         )
@@ -54,8 +54,8 @@ def cli(ctx, verbose):
 
         # 3) Download PDFs (first 10)
         pmid_downloader.callback(
-            "data/pmids.pkl",
-            "data/pmid_pdfs",
+            "scripts/data/pmids.pkl",
+            "scripts/data/pmid_pdfs",
             10
         )
 

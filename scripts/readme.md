@@ -34,10 +34,10 @@ OUT_DIR REPO_URL SUBDIR_PATH \
 [--branch BRANCH] [--depth N] [--force]
 ```
 
-To pull all the phenopackets from Phenopacket store run:
+To pull all the phenopackets from "phenopacket-store" run:
 
 ```shell
-python -m pull_git_files "data/tmp/phenopacket_store" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
+python -m pull_git_files "scripts/data/tmp/phenopacket_store" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
 ```
 
 ### 2) create_pmid_pkl
@@ -53,7 +53,7 @@ To look at every filename in the directory *data/tmp/phenopacket_store/notebooks
 "PMID_{1-8 digits}" and the add that PMID to the .pkl file *data/tmp/phenopacket_store/pmids.pkl*, run:
 
 ```shell
-python -m create_pmid_pkl "data/tmp/phenopacket_store/notebooks" "data/tmp/phenopacket_store/pmids.pkl" "--recursive_dir_search"
+python -m create_pmid_pkl "scripts/data/tmp/phenopacket_store/notebooks" "scripts/data/tmp/phenopacket_store/pmids.pkl" "--recursive_dir_search"
 ```
 
 ### 3) pmid_downloader
@@ -67,7 +67,7 @@ PKL_FILE PDF_OUTPUT_DIR MAX_DOWNLOADS
 For every PMID in the .pkl file, to download the PDFs to the directory *data/tmp/phenopacket_store/pmid_pdfs* (i.e. whenever there is a valid PMCID), run:
  
 ```shell
-python -m PMID_downloader "data/tmp/phenopacket_store/pmids.pkl" "data/tmp/phenopacket_store/pmid_pdfs" "0"
+python -m PMID_downloader "scripts/data/tmp/phenopacket_store/pmids.pkl" "scripts/data/tmp/phenopacket_store/pmid_pdfs" "0"
 ```
 
 ### create_phenopacket_dataset
