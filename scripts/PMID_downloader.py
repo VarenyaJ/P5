@@ -93,15 +93,17 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
 @click.command(
     help="""
 INPUT: a .pkl file whose entries are strings of the form "PMID_1234567" 
-OUTPUT: a directory containing the corresponding PDFs of the journal articles 
-(whenever they are accessible via PubMed Central).
+OUTPUT: a directory containing the corresponding PDFs of the journal articles (whenever they are accessible via PubMed Central).
 
 PKL_FILE_PATH:     the file path for the .pkl file
 PDF_OUTPUT_DIR:    directory to dump the PDFs
 DL_CUT_OFF:     the maximum amount of PDFs that we would like to download. If set to 0, the entire collection of PDFs will be downloaded
 
-Example: 
-data/pmids.pkl      data/pmid_pdfs      50
+Usage:
+    python -m scripts.pmid_downloader <PKL_FILE_PATH> <PDF_OUT_DIR> <DL_CUT_OFF>
+
+Example:
+    python -m scripts.pmid_downloader data/pmids.pkl data/pmid_pdfs 10
 """
 )
 @click.argument("pkl_file_path", type=click.Path(exists=True))
