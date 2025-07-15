@@ -1,7 +1,7 @@
 # P5
 Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 
-* adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda
+- **adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda**
 
 ## Install Conda
 ```bash
@@ -31,7 +31,7 @@ eval "$(conda shell.bash hook)" || echo 'no conda :('
 # 4. OPTIONAL: Initialize mamba
 eval "$(mamba shell hook --shell bash)" || echo 'no mamba :('
 ```
-+
+
 ## Setup Project
 ```bash
 cd $HOME
@@ -59,7 +59,7 @@ EOF
 
 pytest --maxfail=1 -q
 ```
-+
+
 # TODO:
 
 ### 5. Install lock tool & generate lock
@@ -68,14 +68,14 @@ conda install -n p5 -c conda-forge conda-lock -y || mamba install -n p5 -c conda
 conda-lock lock -f requirements/environment.yml \
  -p linux-64 -p osx-64 -p osx-arm64
 ```
-+
+
 ### Create lock
 ```bash
 conda env create --yes -f requirements/environment.yml || mamba env create --yes -f requirements/environment.yml
 conda-lock lock -f requirements/environment.yml -p linux-64 -p osx-64 -p win-64 --name p5
 ```
-+
-Commit the generated lock files and update them via:
+
+### Commit the generated lock files and update them via:
 ```bash
 conda env update --yes -f requirements/environment.yml || mamba env update --yes -f requirements/environment.yml
 conda-lock lock --update-lock-file
