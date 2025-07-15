@@ -49,8 +49,8 @@ INPUT_DIR OUTPUT_PKL \
 [--recursive]
 ```
 
-To look at every filename in the directory *data/tmp/phenopacket_store/notebooks* for occurences of a filename containing a string of the form
-"PMID_{1-8 digits}" and the add that PMID to the .pkl file *data/tmp/phenopacket_store/pmids.pkl*, run:
+To look at every filename in the directory *scripts/data/tmp/phenopacket_store/notebooks* for occurences of a filename containing a string of the form
+"PMID_{1-8 digits}" and the add that PMID to the .pkl file *dscripts/ata/tmp/phenopacket_store/pmids.pkl*, run:
 
 ```shell
 python -m create_pmid_pkl "scripts/data/tmp/phenopacket_store/notebooks" "scripts/data/tmp/phenopacket_store/pmids.pkl" "--recursive_dir_search"
@@ -64,7 +64,7 @@ python -m scripts pmid_downloader \
 PKL_FILE PDF_OUTPUT_DIR MAX_DOWNLOADS
 ```
 
-For every PMID in the .pkl file, to download the PDFs to the directory *data/tmp/phenopacket_store/pmid_pdfs* (i.e. whenever there is a valid PMCID), run:
+For every PMID in the .pkl file, to download the PDFs to the directory *scripts/data/tmp/phenopacket_store/pmid_pdfs* (i.e. whenever there is a valid PMCID), run:
  
 ```shell
 python -m PMID_downloader "scripts/data/tmp/phenopacket_store/pmids.pkl" "scripts/data/tmp/phenopacket_store/pmid_pdfs" "0"
