@@ -22,8 +22,11 @@ REPO:               The URL of the git repository to clone.
 FILES_TO_COPY_DIR:  The relative path to the directory or file
                     within the repository to copy.
 
+Usage:
+    python -m scripts.pull_git_files <OUT_DIR> <REPO> <FILES_TO_COPY_DIR>
+
 Example:
-  python pull_git_files.py ./local_assets https://github.com/Call-for-Code/Project-Sample src/assets
+    python -m scripts.pull_git_files "data/tmp/phenopacket_store" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
 """
 )
 @click.argument("out_dir", type=click.Path(exists=False, dir_okay=True))
