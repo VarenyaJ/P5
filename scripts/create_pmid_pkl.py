@@ -1,7 +1,7 @@
 import click
 import pickle
 
-from scripts.utils import find_pmids
+from .utils import find_pmids
 
 
 @click.command(
