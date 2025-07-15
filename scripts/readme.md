@@ -4,6 +4,13 @@
 
 The `scripts/` directory provides Click-based CLI tools to build and assemble PubMed → Phenopacket datasets. Each script is a subcommand under a single entry point (`scripts/__main__.py`).
 
+The scripts implement a data-processing pipeline that:
+- **Clones or updates a remote Phenopacket repository**
+- **Scans filenames for PMIDs and serializes them to a .pkl**
+- **Downloads article PDFs from PubMed Central**
+- **Builds a CSV mapping PMIDs to PDF paths to ground-truth Phenopacket JSONs**
+- **(Future) Converts PDFs into LLM-generated Phenopacket JSON**
+
 ## Entry Point (`__main__.py`)
 
 Defines a `@click.group()` called `cli`. Global flag `-v/--verbose` sets `logging.DEBUG`. Dynamically imports and registers:
