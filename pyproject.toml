@@ -40,6 +40,10 @@ bugtracker                  = "https://github.com/VarenyaJ/P5/issues"
 # all the code lives under src/, with a P5/ package
 package-dir = { "" = "src" }
 # packages    = ["P5", "P5.scripts", "P5.p5_pdf_parser"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 
 # Omit the [project.dependencies] section entirely to leave all dependency management to Conda.
