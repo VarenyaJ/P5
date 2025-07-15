@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from scripts.create_phenopacket_dataset import create_phenopacket_dataset
+from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
 
 @pytest.mark.parametrize(

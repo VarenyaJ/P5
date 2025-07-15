@@ -4,11 +4,11 @@ from unittest import mock
 
 from click.testing import CliRunner
 
-from scripts.utils import pkl_loader
-from scripts.create_pmid_pkl import create_pmid_pkl
+from P5.scripts.utils import pkl_loader
+from P5.scripts.create_pmid_pkl import create_pmid_pkl
 
 
-@mock.patch("scripts.create_pmid_pkl.find_pmids")
+@mock.patch("P5.scripts.create_pmid_pkl.find_pmids")
 def test_create_pmid_pkl(mock_find_pmids, test_pmids):
 
     mock_find_pmids.return_value = test_pmids
