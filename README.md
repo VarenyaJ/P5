@@ -1,4 +1,4 @@
-# P5
+# P5 - README
 Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 
 - **adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda**
