@@ -91,7 +91,7 @@ python -m scripts.create_phenopacket_dataset "scripts/data/tmp/phenopacket_store
 
 Run: 
 ```shell
-python -m scripts.llm_output "data/tmp/phenopacket_store/pmid_pdfs" "data/tmp/phenopacket_store/llm_output_dir"
+python -m scripts.llm_output "scripts/data/tmp/phenopacket_store/pmid_pdfs" "scripts/data/tmp/phenopacket_store/llm_output_dir"
 ```
 
 Uses the script file_to_phenopacket to take every PDF in the folder and pmid_pdfs and outputs some sort of LLM generated response to files named PMID_1234567.something
@@ -109,10 +109,10 @@ python
 
 If you successfully installed the model switch into the scripts directory and:
 ```shell 
-python -m scripts.file_to_phenopacket "data/tmp/phenopacket_store/pmid_pdfs" "data/tmp/phenopacket_store/llm_jsons" "<prompt>" "<model_name>" --file-type .pdf
+python -m scripts.file_to_phenopacket "scripts/data/tmp/phenopacket_store/pmid_pdfs" "scripts/data/tmp/phenopacket_store/llm_jsons" "<prompt>" "<model_name>" --file-type .pdf
 ```
 
 For example, you could run:
 ```shell 
-python -m scripts.file_to_phenopacket "data/tmp/phenopacket_store/pmid_pdfs" "data/tmp/phenopacket_store/llm_jsons" "Please take this PubMed article, and for JUST ONE of the patients described in it, can you create me a valid Phenopacket in JSON format. Please make sure it is a valid JSON." "llama3.2:latest" --file-type .pdf
+python -m scripts.file_to_phenopacket "scripts/data/tmp/phenopacket_store/pmid_pdfs" "scripts/data/tmp/phenopacket_store/llm_jsons" "Please take this PubMed article, and for JUST ONE of the patients described in it, can you create me a valid Phenopacket in JSON format. Please make sure it is a valid JSON." "llama3.2:latest" --file-type .pdf
 ```
