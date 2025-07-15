@@ -14,10 +14,10 @@ PKL_FILE_PATH:             The file path of the .pkl file which will contain tho
 RECURSIVE DIR SEARCH:      If True then the search through PMID_directory looks through subdirectories.
 
 Usage:
-    python -m scripts.create_pmid_pkl <PMID_DIRECTORY> <PKL_FILE_PATH> [--recursive_dir_search]
+    python -m P5.scripts.create_pmid_pkl <PMID_DIRECTORY> <PKL_FILE_PATH> [--recursive_dir_search]
 
 Example:
-    python -m scripts.create_pmid_pkl assets/cases assets/pmids.pkl --recursive_dir_search
+    python -m P5.scripts.create_pmid_pkl assets/cases assets/pmids.pkl --recursive_dir_search
 """
 )
 @click.argument("pmid_directory", type=click.Path(exists=True, dir_okay=True))

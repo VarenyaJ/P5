@@ -100,10 +100,10 @@ PDF_OUTPUT_DIR:    directory to dump the PDFs
 DL_CUT_OFF:     the maximum amount of PDFs that we would like to download. If set to 0, the entire collection of PDFs will be downloaded
 
 Usage:
-    python -m scripts.pmid_downloader <PKL_FILE_PATH> <PDF_OUT_DIR> <DL_CUT_OFF>
+    python -m P5.scripts.pmid_downloader <PKL_FILE_PATH> <PDF_OUT_DIR> <DL_CUT_OFF>
 
 Example:
-    python -m scripts.pmid_downloader data/pmids.pkl data/pmid_pdfs 10
+    python -m P5.scripts.pmid_downloader data/pmids.pkl data/pmid_pdfs 10
 """
 )
 @click.argument("pkl_file_path", type=click.Path(exists=True))

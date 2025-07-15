@@ -23,10 +23,10 @@ FILES_TO_COPY_DIR:  The relative path to the directory or file
                     within the repository to copy.
 
 Usage:
-    python -m scripts.pull_git_files <OUT_DIR> <REPO> <FILES_TO_COPY_DIR>
+    python -m P5.scripts.pull_git_files <OUT_DIR> <REPO> <FILES_TO_COPY_DIR>
 
 Example:
-    python -m scripts.pull_git_files "data/tmp/phenopacket_store" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
+    python -m P5.scripts.pull_git_files "data/tmp/phenopacket_store" "https://github.com/monarch-initiative/phenopacket-store" "notebooks"
 """
 )
 @click.argument("out_dir", type=click.Path(exists=False, dir_okay=True))

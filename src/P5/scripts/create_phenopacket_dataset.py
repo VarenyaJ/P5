@@ -61,10 +61,10 @@ def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, l
         The function writes the filtered data to a CSV file specified by `dataset_out_dir`.
     
     Usage:
-        python -m scripts.create_phenopacket_dataset <INPUT_DATA_DIR> <GROUND_TRUTH_FILES_DIR> <DATASET_OUT_DIR> [--recursive_input_dir] [--recursive_ground_truth_dir]
+        python -m P5.scripts.create_phenopacket_dataset <INPUT_DATA_DIR> <GROUND_TRUTH_FILES_DIR> <DATASET_OUT_DIR> [--recursive_input_dir] [--recursive_ground_truth_dir]
 
     Example:
-        python -m scripts.create_phenopacket_dataset scripts/data/tmp/phenopacket_store/pmid_pdfs scripts/data/tmp/phenopacket_store/notebooks scripts/data/tmp/PMID_PDF_Phenopacket_list.csv --recursive_ground_truth_dir True
+        python -m P5.scripts.create_phenopacket_dataset scripts/data/tmp/phenopacket_store/pmid_pdfs scripts/data/tmp/phenopacket_store/notebooks scripts/data/tmp/PMID_PDF_Phenopacket_list.csv --recursive_ground_truth_dir True
     """
 )
 @click.argument("input_data_dir", type=click.Path(exists=True))
