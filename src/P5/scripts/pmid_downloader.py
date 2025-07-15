@@ -12,7 +12,7 @@ from selenium.common import InvalidSessionIdException
 from selenium.webdriver.chrome.options import Options
 from tqdm import tqdm
 
-from .utils import pkl_loader
+from P5.scripts.utils import pkl_loader
 
 
 def _get_pmcid(pmid: str) -> Optional[str]:

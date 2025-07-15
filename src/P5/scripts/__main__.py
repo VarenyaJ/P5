@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import click, logging
 
-from .pull_git_files import pull_git_files
-from .create_pmid_pkl import create_pmid_pkl
-from .pmid_downloader import pmid_downloader
-from .create_phenopacket_dataset import create_phenopacket_dataset
+from P5.scripts.pull_git_files import pull_git_files
+from P5.scripts.create_pmid_pkl import create_pmid_pkl
+from P5.scripts.pmid_downloader import pmid_downloader
+from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
 @click.group(invoke_without_command=True)
 @click.option(

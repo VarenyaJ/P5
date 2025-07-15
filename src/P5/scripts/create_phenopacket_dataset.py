@@ -7,7 +7,7 @@ from typing import DefaultDict
 import click
 import pandas as pd
 
-from .utils import pmid_regex
+from P5.scripts.utils import pmid_regex
 
 
 def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, list]:
