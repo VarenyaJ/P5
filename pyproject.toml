@@ -4,20 +4,20 @@ requires = ["setuptools>=65.6.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name                =   "P5"
+name                 =   "P5"
 # version could be read from src/P5/__init__.py's __version__ attribute
-# version             = { attr = "P5.__version__" }
-description         = "Prompt-driven Parsing of Prenatal PDFs to Phenopackets"
-readme              = "README.md"
-requires-python     = ">=3.13"   # lock to Python 3.13 as per the Conda environment
-license             = { file = "LICENSE" }
-authors             = [{ name = "Varenya Jain", email = "varenyajj@gmail.com" }]
-classifiers        = [
+# version            = { attr = "P5.__version__" }
+description          = "Prompt-driven Parsing of Prenatal PDFs to Phenopackets"
+readme               = "README.md"
+requires-python      = ">=3.13"   # lock to Python 3.13 as per the Conda environment
+license              = { file = "LICENSE" }
+authors              = [{ name = "Varenya Jain", email = "varenyajj@gmail.com" }]
+classifiers          = [
    "Programming Language :: Python :: 3.13",
    "License :: OSI Approved :: MIT License",
    "Operating System :: OS Independent",
 ]
-keywords            = ["Global Alliance for Genomics and Health", "GA4GH", "Phenopacket", "GA4GH Phenopacket Schema", "Human Phenotype Ontology", "HPO", "Prenatal", "Fetal Sequencing Consortium"]
+keywords             = ["Global Alliance for Genomics and Health", "GA4GH", "Phenopacket", "GA4GH Phenopacket Schema", "Human Phenotype Ontology", "HPO", "Prenatal", "Fetal Sequencing Consortium"]
 
 # version in __init__
 dynamic = ["version"]
