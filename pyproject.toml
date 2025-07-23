@@ -20,7 +20,7 @@ classifiers          = [
 keywords             = ["Global Alliance for Genomics and Health", "GA4GH", "Phenopacket", "GA4GH Phenopacket Schema", "Human Phenotype Ontology", "HPO", "Prenatal", "Fetal Sequencing Consortium"]
 
 # version in __init__
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 
 # Console-script entry-points to expose all the click commands
 [project.scripts]
