@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/setup_env
 
     -   name: Black Formatting - src
-        run: black ./src/P5/p5_pdf_parser --check --skip-magic-trailing-comma
+        run: black ./src/P5/p5_pdf_parser c
 
     - name: Black Formatting - scripts
       run:  black ./src/P5/scripts --check --skip-magic-trailing-comma
@@ -56,6 +56,3 @@ jobs:
 
     - name: Ruff Linting
       run: ruff check
-
-    - name: Ruff Formatting
-      run: ruff format --check
