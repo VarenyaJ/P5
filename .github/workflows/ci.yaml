@@ -52,7 +52,7 @@ jobs:
       run:  black ./src/P5/scripts --check --skip-magic-trailing-comma
 
     - name: Black Formatting - tests
-      run:  black ./src/P5/tests --check --skip-magic-trailing-comma
+      run:  black tests --check --skip-magic-trailing-comma
 
     - name: Ruff Linting
       run: ruff check
