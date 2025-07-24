@@ -95,7 +95,7 @@ class PhenotypeEvaluator:
         experiment: str,
         model: str,
         zero_division: Optional[float] = 0.0,
-        **metadata_extra: Any
+        **metadata_extra: Any,
     ) -> Report:
         """
         Build a Report object summarizing all accumulated evaluation counts.
@@ -124,5 +124,5 @@ class PhenotypeEvaluator:
             creator=creator,
             experiment=experiment,
             model=model,
-            **metadata_extra
+            **metadata_extra,
         )

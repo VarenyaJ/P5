@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 from click.testing import CliRunner
 
-from scripts.file_to_phenopacket import file_to_phenopacket
+from P5.scripts.file_to_phenopacket import file_to_phenopacket
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
@@ -50,7 +50,7 @@ def test_file_to_phenopacket(request, file_type):
                 json.load(f)
 
 
-@mock.patch("scripts.file_to_phenopacket.chat")
+@mock.patch("P5.scripts.file_to_phenopacket.chat")
 @pytest.mark.parametrize("file_type", [".pdf", ".txt"])
 def test_file_to_phenopacket_mocked(mock_ollama_chat, request, file_type):
     mock_ollama_chat.return_value = {

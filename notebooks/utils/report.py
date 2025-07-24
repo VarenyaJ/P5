@@ -42,7 +42,7 @@ class Report:
         creator: str,
         experiment: str,
         model: str,
-        **metadata_extra: Any
+        **metadata_extra: Any,
     ) -> None:
         """
         Parameters

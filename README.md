@@ -1,4 +1,4 @@
-# P5
+# P5 - README
 Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 
 - **adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda**
@@ -48,7 +48,7 @@ conda deactivate
 conda env remove -n p5 -y
 
 # 3. Create new env
-conda env create -f requirements/environment.yml -n p5 || mamba env create -f requirements/environment.yml -n p5
+conda env create -f requirements/environment.yml -n p5 -y || mamba env create -f requirements/environment.yml -n p5
 
 # 4. Validate smoke test
 conda activate p5
@@ -56,6 +56,12 @@ python - <<EOF
 import docling, selenium
 print("OK:", type(docling), selenium.__version__)
 EOF
+
+# 4.5 Install and Verify Package
+pip install -e .
+python -c "import P5; print(P5.__version__)"
+pull-git-files --help
+create-pmid-pkl --help
 
 pytest --maxfail=1 -q
 ```
