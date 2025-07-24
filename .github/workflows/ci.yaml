@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/setup_env
 
     -   name: Black Formatting - src
-        run: black ./src/P5/p5_pdf_parser c
+        run: black ./src/P5/p5_pdf_parser --check --skip-magic-trailing-comma
 
     - name: Black Formatting - scripts
       run:  black ./src/P5/scripts --check --skip-magic-trailing-comma
