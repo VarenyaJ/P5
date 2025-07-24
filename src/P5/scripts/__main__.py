@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import click
 import logging
 
@@ -7,7 +8,6 @@ from P5.scripts.create_pmid_pkl import create_pmid_pkl
 from P5.scripts.pmid_downloader import pmid_downloader
 from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
-
 @click.group(invoke_without_command=True)
 @click.option(
     "-v",
@@ -15,7 +15,7 @@ from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
     is_flag=True,
     default=False,
     help="Enable verbose (DEBUG) logging",
-)
+    )
 @click.pass_context
 def cli(ctx, verbose):
     """
@@ -64,34 +64,64 @@ def cli(ctx, verbose):
             True,  # --recursive_ground_truth_dir
         )
 
-
-@cli.command("pull_git_files")
+@cli.command("pull-git-files", help="Pull phenopacket‑store files")
+@click.argument("output_dir")
+@click.argument("repo_url")
+@click.argument("notebooks_dir")
 @click.pass_context
-def _pull(ctx, *args, **kwargs):
-    """Alias for pull_git_files"""
-    pull_git_files.callback(*args, **kwargs)
+def pull_files_cmd(ctx, output_dir, repo_url, notebooks_dir):
+    pull_git_files.callback(output_dir, repo_url, notebooks_dir)
 
-
-@cli.command("create_pmid_pkl")
+@cli.command("create-pmid-pkl", help="Generate the PMIDs .pkl file")
+@click.argument("cases_dir")
+@click.argument("output_pkl")
+@click.option(
+    "--recursive/--no-recursive",
+    default=True,
+    help="Search directories recursively",
+)
 @click.pass_context
-def _pk(ctx, *args, **kwargs):
-    """Alias for create_pmid_pkl"""
-    create_pmid_pkl.callback(*args, **kwargs)
+def pmid_pkl_cmd(ctx, cases_dir, output_pkl, recursive):
+    create_pmid_pkl.callback(cases_dir, output_pkl, recursive)
 
-
-@cli.command("pmid_downloader")
+@cli.command("pmid-downloader", help="Download PDFs by PMID")
+@click.argument("input_pkl")
+@click.argument("output_dir")
+@click.argument("max_pdfs", type=int)
 @click.pass_context
-def _dl(ctx, *args, **kwargs):
-    """Alias for pmid_downloader"""
-    pmid_downloader.callback(*args, **kwargs)
+def downloader_cmd(ctx, input_pkl, output_dir, max_pdfs):
+    pmid_downloader.callback(input_pkl, output_dir, max_pdfs)
 
-
-@cli.command("create_phenopacket_dataset")
+@cli.command("create-phenopacket-dataset", help="Build the comparison CSV")
+@click.argument("pmid_pdfs_dir")
+@click.argument("notebooks_dir")
+@click.argument("output_csv")
+@click.option(
+    "--recursive-input/--no-recursive-input",
+    default=False,
+    help="Recurse into input directory",
+)
+@click.option(
+    "--recursive-ground-truth/--no-recursive-ground-truth",
+    default=True,
+    help="Recurse into ground‑truth directory",
+)
 @click.pass_context
-def _ds(ctx, *args, **kwargs):
-    """Alias for create_phenopacket_dataset"""
-    create_phenopacket_dataset.callback(*args, **kwargs)
-
+def dataset_cmd(
+    ctx,
+    pmid_pdfs_dir,
+    notebooks_dir,
+    output_csv,
+    recursive_input,
+    recursive_ground_truth,
+):
+    create_phenopacket_dataset.callback(
+        pmid_pdfs_dir,
+        notebooks_dir,
+        output_csv,
+        recursive_input,
+        recursive_ground_truth,
+    )
 
 if __name__ == "__main__":
-    cli(obj={})
+    cli()(p5)

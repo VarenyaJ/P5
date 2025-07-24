@@ -24,11 +24,13 @@ dynamic = ["version", "dependencies"]
 
 # Console-script entry-points to expose all the click commands
 [project.scripts]
-pull-git-files              = "P5.scripts.pull_git_files:pull_git_files"
-create-pmid-pkl             = "P5.scripts.create_pmid_pkl:create_pmid_pkl"
-pmid-downloader             = "P5.scripts.pmid_downloader:pmid_downloader"
-create-phenopacket-dataset  = "P5.scripts.create_phenopacket_dataset:create_phenopacket_dataset"
-file-to-phenopacket         = "P5.scripts.file_to_phenopacket:file_to_phenopacket"
+# top‐level CLI group
+p5                            = "P5.scripts.__main__:cli"
+#pull-git-files                = "P5.scripts.pull_git_files:pull_git_files"
+#create-pmid-pkl               = "P5.scripts.create_pmid_pkl:create_pmid_pkl"
+#pmid-downloader               = "P5.scripts.pmid_downloader:pmid_downloader"
+#create-phenopacket-dataset    = "P5.scripts.create_phenopacket_dataset:create_phenopacket_dataset"
+#file-to-phenopacket           = "P5.scripts.file_to_phenopacket:file_to_phenopacket"
 
 [project.urls]
 homepage                    = "https://github.com/VarenyaJ/P5"
@@ -44,6 +46,9 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements/requirements.txt", "requirements/requirements_test.txt" ]}
 
 
 # Omit the [project.dependencies] section entirely to leave all dependency management to Conda.
