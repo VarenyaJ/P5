@@ -86,3 +86,16 @@ conda-lock lock -f requirements/environment.yml -p linux-64 -p osx-64 -p win-64 
 conda env update --yes -f requirements/environment.yml || mamba env update --yes -f requirements/environment.yml
 conda-lock lock --update-lock-file
 ```
+
+# Miniconda and Mamba Notes:
+- Miniforge Repository: https://github.com/conda-forge/miniforge
+- Mamba Repository: https://github.com/mamba-org/mamba
+- Miniconda Installers from Anaconda:
+  - https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
+    - fe74721e1d17211a2d14acd9c6889948897dabaddcef7802196bb29c136d59e7
+  - https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+    - 4152f260040d452bfe00c67ac6b429aec7ff3b98f62bab8abe4c468e98e51891
+  - https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
+    - 2ec6f7981770b3396a9ab426e07ac8ef5b12b4393aa2e4bcc984376fe3aa327e
+  - https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    - 612af113b49db0368e2be41ac4d51b7088eebd5f31daeeb89f23fff8f920db58
