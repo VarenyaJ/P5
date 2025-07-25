@@ -17,7 +17,7 @@ classifiers          = [
    "License :: OSI Approved :: MIT License",
    "Operating System :: OS Independent",
 ]
-keywords             = ["Global Alliance for Genomics and Health", "GA4GH", "Phenopacket", "GA4GH Phenopacket Schema", "Human Phenotype Ontology", "HPO", "Prenatal", "Fetal Sequencing Consortium"]
+keywords             = ["Global Alliance for Genomics and Health", "GA4GH", "Phenopacket", "GA4GH Phenopacket Schema", "Human Phenotype Ontology", "HPO", "Prenatal", "Fetal Sequencing Consortium", "International Fetal Genomics Consortium", "Repository of the International Fetal Genomics Consortium", "IFGC"]
 
 # version in __init__
 dynamic = ["version", "dependencies"]
