@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 from docling.document_converter import DocumentConverter
 
-from scripts.PMID_downloader import pmid_downloader
+from P5.scripts.pmid_downloader import pmid_downloader
 
 import pickle
 
@@ -86,11 +86,11 @@ def test_pmid_downloader(test_pmids, request):
             assert os.path.getsize(f"{output_dir}/{pdf}") >= min_valid_pdf_bytes
 
 
-@mock.patch("scripts.PMID_downloader.Entrez")
-@mock.patch("scripts.PMID_downloader.time.sleep")
-@mock.patch("scripts.PMID_downloader.webdriver.Chrome")
-@mock.patch("scripts.PMID_downloader.requests.Session.get")
-def test_PMID_downloader_with_pmcid_mocked(
+@mock.patch("P5.scripts.pmid_downloader.Entrez")
+@mock.patch("P5.scripts.pmid_downloader.time.sleep")
+@mock.patch("P5.scripts.pmid_downloader.webdriver.Chrome")
+@mock.patch("P5.scripts.pmid_downloader.requests.Session.get")
+def test_pmid_downloader_with_pmcid_mocked(
     mock_session_request,
     mock_chrome,
     mock_sleep,
@@ -133,8 +133,8 @@ def test_PMID_downloader_with_pmcid_mocked(
         ), "There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
 
 
-@mock.patch("scripts.PMID_downloader.Entrez")
-def test_PMID_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request):
+@mock.patch("P5.scripts.pmid_downloader.Entrez")
+def test_pmid_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request):
     """
     This tests that the function pmid_downloader works when .pkl containing two PMIDs that do NOT correspond to PMCIDs is inputted.
     In particular when the PMIDS contained in the file "assets/scripts/dummy_pmids_no_pmcid.pkl".
@@ -170,4 +170,4 @@ def test_PMID_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request
 
         assert (
             os.listdir(output_dir) == []
-        ), "When running the test_PMID_downloader_no_pmcid_mocked test, the out directory unexpectedly contained a file."
+        ), "When running the test_pmid_downloader_no_pmcid_mocked test, the out directory unexpectedly contained a file."

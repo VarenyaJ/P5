@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 from click.testing import CliRunner
 
-from scripts.pull_git_files import pull_git_files
+from P5.scripts.pull_git_files import pull_git_files
 
 CI = bool(os.getenv("GITHUB_ACTIONS"))
 
@@ -30,7 +30,7 @@ def test_pull_git_files(request):
     shutil.rmtree(out_dir)
 
 
-@mock.patch("scripts.pull_git_files.Repo.clone_from")
+@mock.patch("P5.scripts.pull_git_files.Repo.clone_from")
 def test_pull_git_files_mocked(mock_clone, tmp_path):
     runner = CliRunner()
     out_dir = tmp_path / "test_output"
