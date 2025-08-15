@@ -68,7 +68,9 @@ def test_filter_phenopackets(
                 f.write("Test PMID")
 
         for i, pmid in enumerate(pmids + not_matching_pmids):
-            save_dir = pathlib.Path(f"{ground_truth_dir}/{random_file_dirs[i]}/phenopackets")
+            save_dir = pathlib.Path(
+                f"{ground_truth_dir}/{random_file_dirs[i]}/phenopackets"
+            )
             save_dir.mkdir(parents=True, exist_ok=True)
             for file_number in range(2):
                 with open(f"{save_dir}/{pmid}_{file_number}.json", "w") as f:
@@ -88,9 +90,13 @@ def test_filter_phenopackets(
             ],
         )
 
-        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
         phenopacket_df = pd.read_csv(out_dir / "phenopacket_df.csv")
 
         assert len(phenopacket_df) == expected_n_pmids
-        assert sorted(phenopacket_df["pmid"].unique().tolist()) == sorted(expected_pmids)
+        assert sorted(phenopacket_df["pmid"].unique().tolist()) == sorted(
+            expected_pmids
+        )

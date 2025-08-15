@@ -9,9 +9,14 @@ import click
 from pathlib import Path
 from git import Repo, InvalidGitRepositoryError
 
+
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.option("--repo", "repo_url", required=True, help="Git repository URL (https or ssh)")
-@click.option("--dest", "dest_dir", required=True, type=click.Path(), help="Destination directory")
+@click.option(
+    "--repo", "repo_url", required=True, help="Git repository URL (https or ssh)"
+)
+@click.option(
+    "--dest", "dest_dir", required=True, type=click.Path(), help="Destination directory"
+)
 @click.option("--branch", default=None, help="Optional branch or tag to checkout")
 def main(repo_url: str, dest_dir: str, branch: str | None):
     dest = Path(dest_dir).expanduser().resolve()
@@ -22,7 +27,9 @@ def main(repo_url: str, dest_dir: str, branch: str | None):
         try:
             repo = Repo(dest)
         except InvalidGitRepositoryError:
-            raise click.ClickException(f"Destination exists but is not a git repo: {dest}")
+            raise click.ClickException(
+                f"Destination exists but is not a git repo: {dest}"
+            )
         click.echo(f"Updating existing repo in {dest} …")
         repo.remotes.origin.fetch()
         if branch:

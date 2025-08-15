@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sys
 import click
 import logging
 
@@ -10,7 +9,13 @@ from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
 
 @click.group(invoke_without_command=True)
-@click.option("-v", "--verbose", is_flag=True, default=False, help="Enable verbose (DEBUG) logging")
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    default=False,
+    help="Enable verbose (DEBUG) logging",
+)
 @click.pass_context
 def cli(ctx, verbose):
     """
@@ -25,7 +30,9 @@ def cli(ctx, verbose):
     ctx.ensure_object(dict)
     ctx.obj["VERBOSE"] = verbose
     level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(name)s — %(message)s")
+    logging.basicConfig(
+        level=level, format="%(asctime)s %(levelname)s %(name)s — %(message)s"
+    )
     logger = logging.getLogger(__name__)
     logger.debug("Verbose mode is ON")
 
@@ -41,7 +48,9 @@ def cli(ctx, verbose):
         )
 
         # 2) Create PMIDs .pkl
-        create_pmid_pkl.callback("assets/cases", "assets/pmids.pkl", True)  # --recursive_dir_search
+        create_pmid_pkl.callback(
+            "assets/cases", "assets/pmids.pkl", True
+        )  # --recursive_dir_search
 
         # 3) Download PDFs (first 10)
         pmid_downloader.callback("scripts/data/pmids.pkl", "scripts/data/pmid_pdfs", 10)
@@ -68,7 +77,9 @@ def pull_files_cmd(ctx, output_dir, repo_url, notebooks_dir):
 @cli.command("create-pmid-pkl", help="Generate the PMIDs .pkl file")
 @click.argument("cases_dir")
 @click.argument("output_pkl")
-@click.option("--recursive/--no-recursive", default=True, help="Search directories recursively")
+@click.option(
+    "--recursive/--no-recursive", default=True, help="Search directories recursively"
+)
 @click.pass_context
 def pmid_pkl_cmd(ctx, cases_dir, output_pkl, recursive):
     create_pmid_pkl.callback(cases_dir, output_pkl, recursive)
@@ -88,7 +99,9 @@ def downloader_cmd(ctx, input_pkl, output_dir, max_pdfs):
 @click.argument("notebooks_dir")
 @click.argument("output_csv")
 @click.option(
-    "--recursive-input/--no-recursive-input", default=False, help="Recurse into input directory"
+    "--recursive-input/--no-recursive-input",
+    default=False,
+    help="Recurse into input directory",
 )
 @click.option(
     "--recursive-ground-truth/--no-recursive-ground-truth",
@@ -97,10 +110,19 @@ def downloader_cmd(ctx, input_pkl, output_dir, max_pdfs):
 )
 @click.pass_context
 def dataset_cmd(
-    ctx, pmid_pdfs_dir, notebooks_dir, output_csv, recursive_input, recursive_ground_truth
+    ctx,
+    pmid_pdfs_dir,
+    notebooks_dir,
+    output_csv,
+    recursive_input,
+    recursive_ground_truth,
 ):
     create_phenopacket_dataset.callback(
-        pmid_pdfs_dir, notebooks_dir, output_csv, recursive_input, recursive_ground_truth
+        pmid_pdfs_dir,
+        notebooks_dir,
+        output_csv,
+        recursive_input,
+        recursive_ground_truth,
     )
 
 

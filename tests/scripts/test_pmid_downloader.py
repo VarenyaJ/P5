@@ -55,7 +55,6 @@ def test_pmid_downloader(test_pmids, request):
     """
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-
         pmids_pkl_file_path = tmp_dir + "/dummy_pmids.pkl"
 
         # create the .pkl file from the fixture pmids_set above
@@ -67,7 +66,9 @@ def test_pmid_downloader(test_pmids, request):
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
         pdf_file_names = {f for f in os.listdir(output_dir)}
         pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(output_dir)}
@@ -108,7 +109,6 @@ def test_pmid_downloader_with_pmcid_mocked(
     expected_pmids = test_pmids_with_pdf
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-
         pmids_pkl_file_path = tmp_dir + "/dummy_pmids.pkl"
 
         # create the .pkl file from the fixture pmids_with_pdf_set above
@@ -120,13 +120,15 @@ def test_pmid_downloader_with_pmcid_mocked(
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
         pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(output_dir)}
 
-        assert (
-            expected_pmids == pdf_file_names_no_file_type
-        ), "There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
+        assert expected_pmids == pdf_file_names_no_file_type, (
+            "There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
+        )
 
 
 @mock.patch("P5.scripts.pmid_downloader.Entrez")
@@ -148,7 +150,6 @@ def test_pmid_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request
     ]
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-
         pmids_pkl_file_path = tmp_dir + "/dummy_pmids.pkl"
 
         # create the .pkl file from the fixture pmids_no_pdf_set above
@@ -160,8 +161,10 @@ def test_pmid_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
-        assert (
-            os.listdir(output_dir) == []
-        ), "When running the test_pmid_downloader_no_pmcid_mocked test, the out directory unexpectedly contained a file."
+        assert os.listdir(output_dir) == [], (
+            "When running the test_pmid_downloader_no_pmcid_mocked test, the out directory unexpectedly contained a file."
+        )

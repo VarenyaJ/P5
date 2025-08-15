@@ -52,7 +52,9 @@ class PhenotypeEvaluator:
         return self._false_negative
 
     def check_phenotypes(
-        self, experimentally_extracted_phenotypes: List[str], ground_truth_phenotypes: Phenopacket
+        self,
+        experimentally_extracted_phenotypes: List[str],
+        ground_truth_phenotypes: Phenopacket,
     ) -> None:
         """
         Compare a sample's predicted labels against its ground truth and update the running true_positive, false_positive, and false_negative counters.
@@ -81,7 +83,10 @@ class PhenotypeEvaluator:
         self._false_negative += false_negative
 
         logger.debug(
-            "Sample evaluation: TP=%d, FP=%d, FN=%d", true_positive, false_positive, false_negative
+            "Sample evaluation: TP=%d, FP=%d, FN=%d",
+            true_positive,
+            false_positive,
+            false_negative,
         )
 
     def report(

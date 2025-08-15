@@ -1,6 +1,7 @@
 import click
 from . import __version__
 
+
 # Make help rock-solid:
 # - add_help_option=False so we control -h/--help ourselves
 # - invoke_without_command=True so `p5` (no args) shows help
@@ -20,7 +21,7 @@ def main(ctx: click.Context, show_help: bool):
     # Lazy import: don't force optional deps just to show help/version
     try:
         from .cli import create_pmid_pkl as _  # noqa: F401
-        from .cli import pull_git_files as _   # noqa: F401
+        from .cli import pull_git_files as _  # noqa: F401
     except Exception:
         # Optional tools—ignore import failures here
         pass

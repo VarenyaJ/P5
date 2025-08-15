@@ -21,12 +21,17 @@ Example:
 """
 )
 @click.argument("pmid_directory", type=click.Path(exists=True, dir_okay=True))
-@click.argument("pkl_file_path", type=click.Path(exists=False, file_okay=True, dir_okay=False))
+@click.argument(
+    "pkl_file_path", type=click.Path(exists=False, file_okay=True, dir_okay=False)
+)
 @click.option("--recursive_dir_search", is_flag=True, default=False)
-def create_pmid_pkl(pmid_directory: str, pkl_file_path: str, recursive_dir_search: bool):
-
+def create_pmid_pkl(
+    pmid_directory: str, pkl_file_path: str, recursive_dir_search: bool
+):
     pmid_set = find_pmids(pmid_directory, recursive_dir_search)
-    click.secho(message=f"{len(pmid_set)} PMIDs found within {pmid_directory}", fg="green")
+    click.secho(
+        message=f"{len(pmid_set)} PMIDs found within {pmid_directory}", fg="green"
+    )
 
     with open(pkl_file_path, "wb") as file:
         pickle.dump(pmid_set, file)
