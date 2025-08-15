@@ -18,3 +18,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# register subcommands at import-time (keeps optional deps lazy)
+from .cli import pdf_parse as _pdf_parse
+main.add_command(_pdf_parse.main, name="pdf-parse")
