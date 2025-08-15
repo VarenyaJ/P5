@@ -1,7 +1,46 @@
 # P5 - README
 Prompt-driven Parsing of Prenatal PDFs to Phenopackets
 
-- **adapted from https://github.com/VarenyaJ/P5/tree/exp/prioritize-conda**
+**A local, end-to-end CLI pipeline for converting unstructured prenatal ultrasound reports (PDF and other formats) into GA4GH-compliant Phenopacket JSONs enriched with Human Phenotype Ontology (HPO) terms, citations, and reasoning. P5 combines PDF text extraction, prompt-driven large language model (LLM) parsing, and retrieval-augmented generation (RAG) to ensure high-fidelity phenotype annotation — all without relying on external cloud services.**
+
+## Project Design & Goals
+
+This project develops a local, secure, reproducible pipeline to transform unstructured prenatal ultrasound reports and raw ultrasound measurement data into structured, GA4GH-compliant Phenopacket JSONs enriched with:
+
+* HPO terms for precise, ontology-driven phenotype descriptions
+* Citations to relevant medical literature
+* Reasoning traces to make annotations explainable and auditable
+
+## Core Components
+
+1. PDF text extraction — layout-aware parsing of vendor-generated PDFs (Observer, GE ViewPoint) and other document types to recover tabular measurements and free-text narratives.
+2. Prompt-based LLM parsing — locally hosted large language models extract candidate phenotypes from clinical text.
+3. Retrieval-Augmented Generation (RAG) — queries the Human Phenotype Ontology to verify, disambiguate, and enrich annotations.
+4. Phenopacket assembly — outputs GA4GH v2-compliant JSON including subject metadata, phenotypic features, biosamples, and provenance.
+5. Validation & evaluation — compares "experimental" phenopackets against curated ground-truth datasets to measure precision, recall, and F1-score.
+
+## Why It Matters
+
+* Automates phenotype curation tasks traditionally handled by genetic counselors and OBGYN/Pediatric specialists.
+* Standardizes prenatal phenotype reporting for cases already paired with WES/WGS data.
+* Enables the creation of federated genotype–phenotype repositories without relying on cloud-based NLP services, preserving patient privacy.
+
+## Features
+
+* Extract PMIDs from filenames to prepare for batch retrieval.
+* Download PDFs from PubMed Central using Selenium.
+* Parse & Normalize multi-format documents (PDF, DOCX, PPTX, HTML, TXT).
+* LLM Conversion using local models for prompt-driven parsing.
+* Dataset Assembly to align predicted and ground-truth phenopackets.
+* Evaluate precision, recall, and F1 for phenotype extraction.
+
+## Prerequisites
+
+* Python ≥ 3.13
+* Conda or Mamba (recommended)
+* Chrome/Chromium for Selenium-based PDF downloads
+* Local Ollama installation with chosen LLMs
+
 
 ## Install Conda
 ```bash
