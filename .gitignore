@@ -205,3 +205,4 @@ cython_debug/
 /dataSources.local.xml
 scripts/data/*.DS_Store
 scripts/.DS_Store
+src/P5/scripts/data/
