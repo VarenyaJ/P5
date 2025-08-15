@@ -127,4 +127,4 @@ def dataset_cmd(
 
 
 if __name__ == "__main__":
-    cli()(p5)
+    cli()  # removed the undefined `p5`

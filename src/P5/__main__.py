@@ -1,25 +1,29 @@
+# src/P5/__main__.py
 import click
 from . import __version__
+from .cli.pdf_parse import main as pdf_parse_cmd  # import at top (fixes E402)
 
 
-@click.group(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(invoke_without_command=True, add_help_option=False)
 @click.version_option(version=__version__, prog_name="P5")
-def main():
+@click.option(
+    "-h",
+    "--help",
+    "show_help",
+    is_flag=True,
+    is_eager=True,
+    help="Show this message and exit.",
+)
+@click.pass_context
+def main(ctx: click.Context, show_help: bool):
     """P5: Prompt-driven Parsing of Prenatal PDFs to Phenopackets."""
-    # Subcommands are registered via entry points, but importing here ensures discovery if run via `python -m P5`.
-    # Lazy import so dependencies for other CLIs aren't required just to show help/version.
-    try:
-        from .cli import create_pmid_pkl as _  # noqa: F401
-        from .cli import pull_git_files as _  # noqa: F401
-    except Exception:
-        # Don't hard-fail on optional tools; they’re exposed by console_scripts anyway.
-        pass
+    if show_help or ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        ctx.exit(0)
 
+
+# Register subcommands
+main.add_command(pdf_parse_cmd, name="pdf-parse")
 
 if __name__ == "__main__":
     main()
-
-# register subcommands at import-time (keeps optional deps lazy)
-from .cli import pdf_parse as _pdf_parse
-
-main.add_command(_pdf_parse.main, name="pdf-parse")
