@@ -7,12 +7,7 @@ from .cli.pdf_parse import main as pdf_parse_cmd  # import at top (fixes E402)
 @click.group(invoke_without_command=True, add_help_option=False)
 @click.version_option(version=__version__, prog_name="P5")
 @click.option(
-    "-h",
-    "--help",
-    "show_help",
-    is_flag=True,
-    is_eager=True,
-    help="Show this message and exit.",
+    "-h", "--help", "show_help", is_flag=True, is_eager=True, help="Show this message and exit."
 )
 @click.pass_context
 def main(ctx: click.Context, show_help: bool):

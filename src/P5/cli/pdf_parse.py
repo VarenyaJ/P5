@@ -19,14 +19,8 @@ def _collect_files(path: Path, pattern: str | None) -> list[Path]:
     if path.is_file():
         return [path] if path.suffix.lower() in VALID_SUFFIXES else []
     if pattern:
-        return [
-            p
-            for p in path.glob(pattern)
-            if p.is_file() and p.suffix.lower() in VALID_SUFFIXES
-        ]
-    return [
-        p for p in path.rglob("*") if p.is_file() and p.suffix.lower() in VALID_SUFFIXES
-    ]
+        return [p for p in path.glob(pattern) if p.is_file() and p.suffix.lower() in VALID_SUFFIXES]
+    return [p for p in path.rglob("*") if p.is_file() and p.suffix.lower() in VALID_SUFFIXES]
 
 
 def _ensure_dir(p: Path) -> None:
@@ -104,9 +98,7 @@ def _process_one(
         return rec, False, True
 
 
-@click.command(
-    name="pdf-parse", context_settings=dict(help_option_names=["-h", "--help"])
-)
+@click.command(name="pdf-parse", context_settings=dict(help_option_names=["-h", "--help"]))
 @click.option(
     "-i",
     "--input",
@@ -160,13 +152,9 @@ def main(input_path: str, out_dir: str, pattern: str, engine: str, dry_run: bool
         click.echo("No input files matched.")
         return
 
-    use_docling = (engine.lower() == "docling") or (
-        engine.lower() == "auto" and DOC_AVAILABLE
-    )
+    use_docling = (engine.lower() == "docling") or (engine.lower() == "auto" and DOC_AVAILABLE)
     if engine.lower() == "docling" and not DOC_AVAILABLE:
-        raise click.ClickException(
-            "docling is not installed. Install it or use --engine auto."
-        )
+        raise click.ClickException("docling is not installed. Install it or use --engine auto.")
 
     engine_label = "docling (txt passthrough)" if use_docling else "none"
     click.echo(f"Found {len(files)} file(s). Using engine: {engine_label}")
@@ -194,6 +182,4 @@ def main(input_path: str, out_dir: str, pattern: str, engine: str, dry_run: bool
         click.echo(f"Failures: {failed} (see {err_dir})")
     if not DOC_AVAILABLE and use_docling:
         # shouldn't happen (guarded), but keep the note for clarity
-        click.echo(
-            "Note: docling not detected; only passthrough for .txt was performed."
-        )
+        click.echo("Note: docling not detected; only passthrough for .txt was performed.")
