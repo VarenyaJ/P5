@@ -78,8 +78,7 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
         with open(f"{pdf_out_dir}/{pmid}.pdf", "wb") as f:
             f.write(response.content)
             click.secho(
-                message=f"A PDF for {pmid} was successfully downloaded. PMCID={pmcid}.",
-                fg="green",
+                message=f"A PDF for {pmid} was successfully downloaded. PMCID={pmcid}.", fg="green"
             )
 
     except (InvalidSessionIdException, FileNotFoundError, IOError, InvalidSchema) as e:
@@ -126,9 +125,7 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
         )
         dl_cut_off = len(all_pmids)
 
-    pmid_batch: set = set(
-        list(all_pmids)[:dl_cut_off]
-    )  # entries of the form "PMID_1234567"
+    pmid_batch: set = set(list(all_pmids)[:dl_cut_off])  # entries of the form "PMID_1234567"
 
     with tqdm(total=len(pmid_batch)) as progress_bar:
         for pmid in pmid_batch:

@@ -19,9 +19,7 @@ file_types = [".pdf", ".pptx", ".docx", ".doc", ".html", ".txt"]
     help=f"The type of file to process. Possible types are: {file_types}",
     default=".pdf",
 )
-def file_to_phenopacket(
-    file_dir: str, out_dir: str, prompt: str, model: str, file_type: str
-):
+def file_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str, file_type: str):
     """This script converts a several file to a Phenopacket via LLM."""
     if not file_type.startswith("."):
         file_type = f".{file_type}"
@@ -36,9 +34,7 @@ def file_to_phenopacket(
     if file_type.lower() in [".pdf", ".pptx", ".docx", ".doc", ".html"]:
         converter = DocumentConverter()
         filename_to_content = {
-            file_dir.split("/")[-1]: converter.convert(
-                file_dir
-            ).document.export_to_text()
+            file_dir.split("/")[-1]: converter.convert(file_dir).document.export_to_text()
             for file_dir in file_dirs
         }
     elif file_type.lower() == ".txt":
@@ -49,8 +45,7 @@ def file_to_phenopacket(
 
     for file_name, text in filename_to_content.items():
         response: ChatResponse = chat(
-            model=model,
-            messages=[{"role": "user", "content": f"{prompt} {text} [EOS]"}],
+            model=model, messages=[{"role": "user", "content": f"{prompt} {text} [EOS]"}]
         )
 
         try:

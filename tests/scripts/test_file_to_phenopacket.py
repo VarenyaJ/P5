@@ -15,9 +15,7 @@ CI = bool(os.getenv("GITHUB_ACTIONS"))
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 @pytest.mark.parametrize("file_type", [".pdf", ".txt"])
 def test_file_to_phenopacket(request, file_type):
-    asset_dir = str(
-        pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pdfs"
-    )
+    asset_dir = str(pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pdfs")
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmp_dir:
         result = runner.invoke(
@@ -33,9 +31,7 @@ def test_file_to_phenopacket(request, file_type):
             ],
         )
 
-        assert (
-            result.exit_code == 0
-        ), f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
 
         phenopackets = [f for f in os.listdir(tmp_dir)]
         test_asset_files = [
@@ -57,9 +53,7 @@ def test_file_to_phenopacket_mocked(mock_ollama_chat, request, file_type):
         "message": {"content": json.dumps({"phenopacket_key": "phenopacket_value"})}
     }
 
-    asset_dir = str(
-        pathlib.Path(request.path).parent.parent / "assets/scripts/file_to_phenopacket"
-    )
+    asset_dir = str(pathlib.Path(request.path).parent.parent / "assets/scripts/file_to_phenopacket")
     dummy_file_names = [
         f.split(".")[0]
         for f in os.listdir(asset_dir)
@@ -80,17 +74,11 @@ def test_file_to_phenopacket_mocked(mock_ollama_chat, request, file_type):
                 file_type,
             ],
         )
-        assert (
-            result.exit_code == 0
-        ), f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
 
         phenopackets_generated = [f for f in os.listdir(tmp_dir) if f.endswith(".json")]
-        expected_phenopacket_stems = sorted(
-            [name.split(".")[0] for name in dummy_file_names]
-        )
-        generated_phenopacket_stems = sorted(
-            [f.split(".")[0] for f in phenopackets_generated]
-        )
+        expected_phenopacket_stems = sorted([name.split(".")[0] for name in dummy_file_names])
+        generated_phenopacket_stems = sorted([f.split(".")[0] for f in phenopackets_generated])
 
         assert mock_ollama_chat.call_count == len(
             dummy_file_names

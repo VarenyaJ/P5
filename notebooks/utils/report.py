@@ -79,18 +79,10 @@ class Report:
         precision = precision_score(y_true, y_pred, average="macro", zero_division=0)
         recall = recall_score(y_true, y_pred, average="macro", zero_division=0)
         f1 = f1_score(y_true, y_pred, average="macro", zero_division=0)
-        self.metrics: Dict[str, float] = {
-            "precision": precision,
-            "recall": recall,
-            "f1_score": f1,
-        }
+        self.metrics: Dict[str, float] = {"precision": precision, "recall": recall, "f1_score": f1}
 
         self.classification_report: str = sk_classification_report(
-            y_true,
-            y_pred,
-            labels=[1, 0],
-            target_names=["present", "absent"],
-            zero_division=0,
+            y_true, y_pred, labels=[1, 0], target_names=["present", "absent"], zero_division=0
         )
         self.metadata: Dict[str, Any] = {
             "creator": creator,

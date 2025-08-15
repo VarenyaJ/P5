@@ -1,54 +1,82 @@
 [build-system]
-# setuptools builds the package; wheel lets pip build a .whl for faster installs
-requires = ["setuptools>=65.6.3", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
 
 [project]
-name                 =   "P5"
-# version could be read from src/P5/__init__.py's __version__ attribute
-# version            = { attr = "P5.__version__" }
-description          = "Prompt-driven Parsing of Prenatal PDFs to Phenopackets"
-readme               = "README.md"
-requires-python      = ">=3.13"   # lock to Python 3.13 as per the Conda environment
-license              = { file = "LICENSE" }
-authors              = [{ name = "Varenya Jain", email = "varenyajj@gmail.com" }]
-classifiers          = [
-   "Programming Language :: Python :: 3.13",
-   "License :: OSI Approved :: MIT License",
-   "Operating System :: OS Independent",
+name = "P5"
+version = "0.1.0"
+description = "Prompt-driven Parsing of Prenatal PDFs to Phenopackets"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { file = "LICENSE" }
+authors = [{ name = "Varenya Jain", email = "varenyajj@gmail.com" }]
+keywords = ["phenopackets", "HPO", "prenatal", "RAG", "LLM", "phenotype", "genomics"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-keywords             = ["Global Alliance for Genomics and Health", "GA4GH", "Phenopacket", "GA4GH Phenopacket Schema", "Human Phenotype Ontology", "HPO", "Prenatal", "Fetal Sequencing Consortium", "International Fetal Genomics Consortium", "Repository of the International Fetal Genomics Consortium", "IFGC"]
 
-# version in __init__
-dynamic = ["version", "dependencies"]
+# Keep install-time deps minimal; most users will install via Conda env or requirements files.
+# Extras mirror our requirements/*.txt so `pip install .[llm,scripts,test]` works too.
+dependencies = []
 
-# Console-script entry-points to expose all the click commands
-[project.scripts]
-# top‐level CLI group
-p5                            = "P5.scripts.__main__:cli"
-#pull-git-files                = "P5.scripts.pull_git_files:pull_git_files"
-#create-pmid-pkl               = "P5.scripts.create_pmid_pkl:create_pmid_pkl"
-#pmid-downloader               = "P5.scripts.pmid_downloader:pmid_downloader"
-#create-phenopacket-dataset    = "P5.scripts.create_phenopacket_dataset:create_phenopacket_dataset"
-#file-to-phenopacket           = "P5.scripts.file_to_phenopacket:file_to_phenopacket"
+[project.optional-dependencies]
+llm = ["ollama==0.5.1", "docling==2.36.1", "phenopackets==2.0.2.post4", "protobuf==3.20.3", "scikit-learn==1.7.0", "jupyterlab==4.4.4", "ipykernel==6.29.5"]
+scripts = ["click==8.2.1", "GitPython==3.1.44", "requests==2.32.4", "biopython==1.85", "selenium==4.33.0", "pandas==2.2.3"]
+test = ["black==25.1.0", "pytest==8.4.0", "ruff==0.12.1"]
 
 [project.urls]
-homepage                    = "https://github.com/VarenyaJ/P5"
-repository                  = "https://github.com/VarenyaJ/P5.git"
-documentation               = "https://github.com/VarenyaJ/P5.git"
-bugtracker                  = "https://github.com/VarenyaJ/P5/issues"
+homepage = "https://github.com/VarenyaJ/P5"
+repository = "https://github.com/VarenyaJ/P5.git"
+documentation = "https://github.com/VarenyaJ/P5.git"
+bugtracker = "https://github.com/VarenyaJ/P5/issues"
 
-[tool.setuptools]
-# all the code lives under src/, with a P5/ package
-package-dir = { "" = "src" }
-# packages    = ["P5", "P5.scripts", "P5.p5_pdf_parser"]
-include-package-data = true
+# ---- CLI entry points ----
+[project.scripts]
+# main P5 CLI (point this at our click group)
+p5 = "P5.__main__:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+# helper CLIs we referenced in README (adjust module paths if different)
+pull-git-files = "P5.cli.pull_git_files:main"
+create-pmid-pkl = "P5.cli.create_pmid_pkl:main"
 
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements/requirements.txt", "requirements/requirements_test.txt" ]}
+# ---- Hatch build config ----
+[tool.hatch.version]
+# if we prefer single-source versioning from __init__.py later
+path = "src/P5/__init__.py"
 
+[tool.hatch.build]
+skip-excluded-dirs = true
 
-# Omit the [project.dependencies] section entirely to leave all dependency management to Conda.
+[tool.hatch.build.targets.wheel]
+packages = ["src/P5"]
+include = ["README.md", "LICENSE", "requirements/**", "tests/data/**"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/**",
+  "README.md",
+  "LICENSE",
+  "requirements/**",
+  "tests/data/**",
+  "pytest.ini",
+  "ruff.toml",
+]
+
+# ---- Tooling (kept light since we already have ruff.toml & pytest.ini) ----
+[tool.ruff]
+# defer to ruff.toml in repo; this stanza is a harmless anchor
+
+[tool.pytest.ini_options]
+# if you ever want to consolidate pytest.ini into pyproject, uncomment these:
+# testpaths = ["tests"]
+# addopts = "-q"
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]

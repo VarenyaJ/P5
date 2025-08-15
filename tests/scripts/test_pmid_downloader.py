@@ -67,9 +67,7 @@ def test_pmid_downloader(test_pmids, request):
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert (
-            result.exit_code == 0
-        ), f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
 
         pdf_file_names = {f for f in os.listdir(output_dir)}
         pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(output_dir)}
@@ -122,9 +120,7 @@ def test_pmid_downloader_with_pmcid_mocked(
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert (
-            result.exit_code == 0
-        ), f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
 
         pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(output_dir)}
 
@@ -164,9 +160,7 @@ def test_pmid_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert (
-            result.exit_code == 0
-        ), f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
 
         assert (
             os.listdir(output_dir) == []
