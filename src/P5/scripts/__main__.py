@@ -8,6 +8,7 @@ from P5.scripts.create_pmid_pkl import create_pmid_pkl
 from P5.scripts.pmid_downloader import pmid_downloader
 from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
+
 @click.group(invoke_without_command=True)
 @click.option(
     "-v",
@@ -15,7 +16,7 @@ from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
     is_flag=True,
     default=False,
     help="Enable verbose (DEBUG) logging",
-    )
+)
 @click.pass_context
 def cli(ctx, verbose):
     """
@@ -64,6 +65,7 @@ def cli(ctx, verbose):
             True,  # --recursive_ground_truth_dir
         )
 
+
 @cli.command("pull-git-files", help="Pull phenopacket‑store files")
 @click.argument("output_dir")
 @click.argument("repo_url")
@@ -71,6 +73,7 @@ def cli(ctx, verbose):
 @click.pass_context
 def pull_files_cmd(ctx, output_dir, repo_url, notebooks_dir):
     pull_git_files.callback(output_dir, repo_url, notebooks_dir)
+
 
 @cli.command("create-pmid-pkl", help="Generate the PMIDs .pkl file")
 @click.argument("cases_dir")
@@ -84,6 +87,7 @@ def pull_files_cmd(ctx, output_dir, repo_url, notebooks_dir):
 def pmid_pkl_cmd(ctx, cases_dir, output_pkl, recursive):
     create_pmid_pkl.callback(cases_dir, output_pkl, recursive)
 
+
 @cli.command("pmid-downloader", help="Download PDFs by PMID")
 @click.argument("input_pkl")
 @click.argument("output_dir")
@@ -91,6 +95,7 @@ def pmid_pkl_cmd(ctx, cases_dir, output_pkl, recursive):
 @click.pass_context
 def downloader_cmd(ctx, input_pkl, output_dir, max_pdfs):
     pmid_downloader.callback(input_pkl, output_dir, max_pdfs)
+
 
 @cli.command("create-phenopacket-dataset", help="Build the comparison CSV")
 @click.argument("pmid_pdfs_dir")
@@ -122,6 +127,7 @@ def dataset_cmd(
         recursive_input,
         recursive_ground_truth,
     )
+
 
 if __name__ == "__main__":
     cli()(p5)

@@ -18,7 +18,7 @@ setup(
             "create-pmid-pkl = P5.scripts.create_pmid_pkl:create_pmid_pkl",
             "pmid-downloader = P5.scripts.pmid_downloader:pmid_downloader",
             "create-phenopacket-dataset = "
-                "P5.scripts.create_phenopacket_dataset:create_phenopacket_dataset",
+            "P5.scripts.create_phenopacket_dataset:create_phenopacket_dataset",
             "file-to-phenopacket = P5.scripts.file_to_phenopacket:file_to_phenopacket",
         ]
     },
