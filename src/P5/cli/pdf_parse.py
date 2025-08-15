@@ -76,11 +76,18 @@ def _process_one(
     try:
         text = ""
         fmt = "txt"
-        if use_docling and p.suffix.lower() in VALID_SUFFIXES:
-            text, fmt = _extract_with_docling(p)
-        elif p.suffix.lower() == ".txt":
+        suffix = p.suffix.lower()
+
+        if suffix == ".txt":
+            # Always passthrough for plain text, regardless of engine
             text = p.read_text(encoding="utf-8", errors="ignore")
             fmt = "txt"
+        elif use_docling and suffix in VALID_SUFFIXES:
+            # Use docling for the other supported formats
+            text, fmt = _extract_with_docling(p)
+        else:
+            # No extraction, just manifest entry
+            pass
 
         if text:
             target = text_dir / (p.with_suffix("." + fmt).name)
@@ -161,9 +168,9 @@ def main(input_path: str, out_dir: str, pattern: str, engine: str, dry_run: bool
             "docling is not installed. Install it or use --engine auto."
         )
 
-    click.echo(
-        f"Found {len(files)} file(s). Using engine: {'docling' if use_docling else 'none'}"
-    )
+    engine_label = "docling (txt passthrough)" if use_docling else "none"
+    click.echo(f"Found {len(files)} file(s). Using engine: {engine_label}")
+
     if dry_run:
         for p in files[:20]:
             click.echo(f"- {p}")
