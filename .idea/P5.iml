@@ -5,6 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/scripts" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/src/P5.egg-info" />
+      <excludeFolder url="file://$MODULE_DIR$/src/P5/scripts/data" />
     </content>
     <orderEntry type="jdk" jdkName="P5" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

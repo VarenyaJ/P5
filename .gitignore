@@ -206,3 +206,8 @@ cython_debug/
 scripts/data/*.DS_Store
 scripts/.DS_Store
 src/P5/scripts/data/
+/_p5_out/run_2025-08-15_17-02-12/errors/example.err.txt
+/demo/papers/example.txt
+/_p5_out/run_2025-08-15_17-02-12/manifest.jsonl
+/_p5_out/run_2025-08-15_17-06-56/manifest.jsonl
+/_p5_out/run_2025-08-15_17-06-56/text/example.txt
