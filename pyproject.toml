@@ -55,6 +55,16 @@ scripts = ["click==8.2.1", "GitPython==3.1.44", "requests==2.32.4", "biopython==
 # Dev/test tooling
 test = ["black==25.1.0", "pytest==8.4.0", "ruff==0.12.1"]
 
+#TODO:
+#[project.optional-dependencies]
+#base=[]
+#scripts=[]
+#test=[]
+#[tool.setuptools.dynamic.optional-dependencies]
+#base = {file = ["requirements/requirements.txt"]}
+#scripts = {file = ["requirements/requirements_scripts.txt"]}
+#test = {file = ["requirements/requirements_test.txt"]}
+
 [project.urls]
 homepage = "https://github.com/VarenyaJ/P5"
 repository = "https://github.com/VarenyaJ/P5.git"
