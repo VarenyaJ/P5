@@ -34,6 +34,28 @@ This project develops a local, secure, reproducible pipeline to transform unstru
 * Dataset Assembly to align predicted and ground-truth phenopackets.
 * Evaluate precision, recall, and F1 for phenotype extraction.
 
+## Quickstart (pip, no Conda)
+
+```bash
+# 1) Create & activate a virtualenv (recommended)
+python -m venv .venv && . .venv/bin/activate
+python -V   # Python >= 3.13
+
+# 2) Editable install with extras
+pip install -U pip
+pip install -e .[scripts,llm,test]
+
+# 3) Smoke test CLI
+p5 --help
+p5 pull-git-files --help
+
+# 4) Run tests
+pytest -q
+```
+
+### Deprecation note
+`python -m P5` is deprecated. Please use the console script `p5` instead.
+
 ## Prerequisites
 
 * Python ≥ 3.13
@@ -96,33 +118,44 @@ import docling, selenium
 print("OK:", type(docling), selenium.__version__)
 EOF
 
-# 4.5 Install and Verify Package
-pip install -e .
-python -c "import P5; print(P5.__version__)"
-pull-git-files --help
-create-pmid-pkl --help
+# 5. Install package in editable mode with extras
+pip install -U pip
+pip install -e .[scripts,llm,test]
 
+# 6. Verify package + CLI
+python -c "import P5; print(P5.__version__)"
+p5 --help
+p5 pull-git-files --help
+p5 create-pmid-pkl --help
+
++# 7. Run tests
 pytest --maxfail=1 -q
 ```
 
 # TODO:
 
-### 5. Install lock tool & generate lock
-```
+### 8. Install lock tool & generate lock
+
+
+To make reproducible environments across OS/architectures:
+```bash
 conda install -n p5 -c conda-forge conda-lock -y || mamba install -n p5 -c conda-forge conda-lock -y
-conda-lock lock -f requirements/environment.yml \
- -p linux-64 -p osx-64 -p osx-arm64
+
+# Generate lock files for multiple platforms
+conda-lock lock -f requirements/environment.yml -p linux-64 -p osx-64 -p osx-arm64
 ```
 
-### Create lock
+### Regenerate lock files
 ```bash
 conda env create --yes -f requirements/environment.yml || mamba env create --yes -f requirements/environment.yml
+
 conda-lock lock -f requirements/environment.yml -p linux-64 -p osx-64 -p win-64 --name p5
 ```
 
 ### Commit the generated lock files and update them via:
 ```bash
 conda env update --yes -f requirements/environment.yml || mamba env update --yes -f requirements/environment.yml
+
 conda-lock lock --update-lock-file
 ```
 
