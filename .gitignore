@@ -211,3 +211,5 @@ src/P5/scripts/data/
 /_p5_out/run_2025-08-15_17-02-12/manifest.jsonl
 /_p5_out/run_2025-08-15_17-06-56/manifest.jsonl
 /_p5_out/run_2025-08-15_17-06-56/text/example.txt
+.DS_Store
+notesbooks/.DS_Store
