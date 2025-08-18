@@ -67,6 +67,7 @@ bugtracker = "https://github.com/VarenyaJ/P5/issues"
 # main P5 CLI (point this at our click group)
 # p5 = "P5.__main__:main"
 p5 = "P5.scripts.__main__:cli"
+p5-pdf-parse = "P5.cli.pdf_parse:main"  # direct access to the `pdf-parse` helper without teaching people the module path
 
 # Sub-tools / helper CLIs we referenced in README (adjust module paths if different)
 pull-git-files = "P5.cli.pull_git_files:main"
