@@ -1,11 +1,19 @@
+"""
+Tests for file_to_phenopacket.
+
+Notes for maintainers:
+- The unmocked test is skipped on CI because it depends on a locally running Ollama model
+  and internet access for docling resources on some formats.
+- The mocked test validates we call `ollama.chat` once per input and that we write valid JSON files.
+"""
+
 import json
 import os
 import pathlib
 import tempfile
-from unittest import mock
-
 import pytest
 from click.testing import CliRunner
+from unittest import mock
 
 from P5.scripts.file_to_phenopacket import file_to_phenopacket
 
@@ -15,6 +23,7 @@ CI = bool(os.getenv("GITHUB_ACTIONS"))
 @pytest.mark.skipif(CI, reason="CI needs internet access for this test")
 @pytest.mark.parametrize("file_type", [".pdf", ".txt"])
 def test_file_to_phenopacket(request, file_type):
+    # This assets folder contains small demo inputs for both .pdf and .txt paths.
     asset_dir = str(pathlib.Path(request.path).parent.parent / "assets/scripts/dummy_pdfs")
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -31,6 +40,7 @@ def test_file_to_phenopacket(request, file_type):
             ],
         )
 
+        # The CLI should always exit 0; on LLM JSON failure it writes a minimal PP fallback.
         assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
 
         phenopackets = [f for f in os.listdir(tmp_dir)]
@@ -40,15 +50,17 @@ def test_file_to_phenopacket(request, file_type):
             if os.path.isfile(f"{asset_dir}/{f}") and f.endswith(file_type)
         ]
 
+        # We expect a one-to-one mapping from inputs to emitted .json files (stems match).
         assert sorted(test_asset_files) == sorted(f.split(".")[0] for f in phenopackets)
         for pp in phenopackets:
             with open(f"{tmp_dir}/{pp}", "r") as f:
-                json.load(f)
+                json.load(f)  # ensure each is valid JSON
 
 
 @mock.patch("P5.scripts.file_to_phenopacket.chat")
 @pytest.mark.parametrize("file_type", [".pdf", ".txt"])
 def test_file_to_phenopacket_mocked(mock_ollama_chat, request, file_type):
+    # Force a clean JSON payload to test the "happy path" without hitting Ollama at all.
     mock_ollama_chat.return_value = {
         "message": {"content": json.dumps({"phenopacket_key": "phenopacket_value"})}
     }
@@ -80,6 +92,7 @@ def test_file_to_phenopacket_mocked(mock_ollama_chat, request, file_type):
         expected_phenopacket_stems = sorted([name.split(".")[0] for name in dummy_file_names])
         generated_phenopacket_stems = sorted([f.split(".")[0] for f in phenopackets_generated])
 
+        # One chat invocation per input file ensures strict one-to-one behavior.
         assert mock_ollama_chat.call_count == len(
             dummy_file_names
         ), f"Expected ollama.chat to be called {len(dummy_file_names)} times, but was called {mock_ollama_chat.call_count} times."
@@ -88,6 +101,7 @@ def test_file_to_phenopacket_mocked(mock_ollama_chat, request, file_type):
             expected_phenopacket_stems == generated_phenopacket_stems
         ), f"Expected phenopackets {expected_phenopacket_stems} but got {generated_phenopacket_stems}"
 
+        # Files must contain valid JSON with the mocked payload.
         for pp_filename in phenopackets_generated:
             with open(os.path.join(tmp_dir, pp_filename), "r") as f:
                 try:
