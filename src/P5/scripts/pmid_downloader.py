@@ -153,6 +153,14 @@ Example:
 @click.argument("pdf_out_dir", type=click.Path(exists=False, dir_okay=True))
 @click.argument("dl_cut_off", type=int)
 def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
+    """
+    Main CLI entry point.
+
+    - Ensures output directory exists.
+    - Loads PMIDs from the pickle file.
+    - Applies the download cut-off.
+    - Iterates PMIDs: resolve PMCID → download PDF (if available).
+    """
     pdf_out_dir_path = Path(pdf_out_dir)
     if not pdf_out_dir_path.exists():
         pdf_out_dir_path.mkdir(exist_ok=True, parents=True)
@@ -169,6 +177,7 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
         )
         dl_cut_off = len(all_pmids)
 
+    # Slice deterministically to a set the loop will consume.
     pmid_batch: set = set(list(all_pmids)[:dl_cut_off])  # entries of the form "PMID_1234567"
 
     with tqdm(total=len(pmid_batch)) as progress_bar:
@@ -176,6 +185,7 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
             progress_bar.set_description(f"Processing {pmid}")
             pmcid: str = _get_pmcid(pmid)  # of the form "1234567"
             if pmcid is None:
+                # Either no PMC open access link or we hit a transient error—skip gracefully.
                 click.secho(message=f"No PMCID found for {pmid}.", fg="yellow")
                 progress_bar.update(1)
                 continue
@@ -186,7 +196,6 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
         progress_bar.set_description(
             f"Processing of {str(len(pmid_batch))} PMIDs complete. {pdf_count} PDFs successfully downloaded."
         )
-
 
 if __name__ == "__main__":
     pmid_downloader()
