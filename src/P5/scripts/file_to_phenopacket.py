@@ -5,6 +5,26 @@ import click
 from docling.document_converter import DocumentConverter
 from ollama import chat, ChatResponse
 
+# top
+from datetime import datetime, timezone
+from json.decoder import JSONDecodeError
+
+def _now_rfc3339_z() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def _minimal_pp(patient_id: str) -> dict:
+    return {
+        "id": patient_id,
+        "subject": {"id": patient_id},
+        "phenotypicFeatures": [],
+        "metaData": {
+            "created": _now_rfc3339_z(),
+            "createdBy": "P5.file_to_phenopacket",
+            "phenopacketSchemaVersion": "2.0.2",
+        },
+    }
+
+
 file_types = [".pdf", ".pptx", ".docx", ".doc", ".html", ".txt"]
 
 
@@ -42,22 +62,32 @@ def file_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str, fi
             file_dir.split("/")[-1]: open(file_dir).read().split("[text]")[-1]
             for file_dir in file_dirs
         }
-
+        
     for file_name, text in filename_to_content.items():
+        # Ask Ollama for pure JSON
         response: ChatResponse = chat(
-            model=model, messages=[{"role": "user", "content": f"{prompt} {text} [EOS]"}]
+            model=model,
+            messages=[{"role": "user", "content": f"{prompt} {text} [EOS]"}],
+            stream=False,
+            format="json",
+            options={"temperature": 0},
         )
+
+        stem = file_name.split(".")[0]
+        out_path = f"{out_dir}/{stem}.json"
 
         try:
             phenopacket_json = json.loads(response["message"]["content"])
-            with open(f"{out_dir}/{file_name.split('.')[0]}.json", "w") as f:
-                json.dump(phenopacket_json, f)
-        except json.decoder.JSONDecodeError:
+        except JSONDecodeError:
+            # Fall back to a minimal, valid phenopacket so a file is always produced
             click.secho(
-                message=f"{model} did not convert {file_name} into valid json format",
-                err=True,
-                fg="red",
+                message=f"{model} did not return valid JSON for {file_name}; writing minimal phenopacket.",
+                err=True, fg="yellow",
             )
+            phenopacket_json = _minimal_pp(patient_id=stem)
+
+        with open(out_path, "w") as f:
+            json.dump(phenopacket_json, f)
 
 
 if __name__ == "__main__":

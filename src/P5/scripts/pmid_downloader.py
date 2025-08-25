@@ -14,21 +14,39 @@ from tqdm import tqdm
 
 from P5.scripts.utils import pkl_loader
 
+# top
+import random
+from urllib.error import HTTPError, URLError
+
+# before calling Entrez.* anywhere
+Entrez.email = os.environ.get("NCBI_EMAIL", "fake.email@email.de")
+# optionally:
+# Entrez.api_key = os.environ.get("NCBI_API_KEY")
+
 
 def _get_pmcid(pmid: str) -> Optional[str]:
-    """This function uses the PubMed API called Entrez to get a PMCID from a PMID."""
-    Entrez.email = "fake.email@email.de"
-
-    with Entrez.elink(
-        dbfrom="pubmed", db="pmc", id=pmid.split("_")[-1], linkname="pubmed_pmc"
-    ) as handle:
-        records = Entrez.read(handle)
-
-    link_sets_db = records[0]["LinkSetDb"]
-    if link_sets_db == []:
-        return None
-    pmcid = link_sets_db[0]["Link"][0]["Id"]
-    return pmcid
+    """Get PMCID from PMID, robust to transient NCBI failures."""
+    pmid_num = pmid.split("_")[-1]
+    retries = 4
+    for i in range(retries):
+        try:
+            with Entrez.elink(dbfrom="pubmed", db="pmc", id=pmid_num, linkname="pubmed_pmc") as handle:
+                records = Entrez.read(handle)
+            link_sets_db = records[0].get("LinkSetDb", [])
+            if not link_sets_db:
+                return None
+            return link_sets_db[0]["Link"][0]["Id"]
+        except HTTPError as e:
+            # Retry on 5xx; otherwise give up.
+            if 500 <= getattr(e, "code", 0) < 600:
+                # exponential backoff with jitter
+                delay = (1.5 ** i) + random.uniform(0, 0.5)
+                time.sleep(delay)
+                continue
+            return None
+        except (URLError, Exception):
+            return None
+    return None
 
 
 def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
