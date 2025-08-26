@@ -1,8 +1,10 @@
-### Check for Blockages
+# Check for Blockages
 Ensure ´https://repo.anaconda.com/´ is not blocked by your IT/ISP/DNS provider
-    -   e.g. "UnavailableInvalidChannel: HTTP 403 FORBIDDEN for channel pkgs/main <https://repo.anaconda.com/pkgs/main>"
+    -   e.g. "UnavailableInvalidChannel: HTTP 403 FORBIDDEN for channel pkgs/main at <https://repo.anaconda.com/pkgs/main>"
 
-If you work at a university like the Charité, you should probably switch to the "Eduroam" wireless network to install conda, and then you can switch back to your preferred wireless/LAN network for pip installation and use of this package. Another solution would be to configure a proxy, but I found this method easier and simpler to do:
+## If you are working at a university location like the Charité, you should probably switch to the "Eduroam" wireless network to install conda, and then you can switch back to your preferred wireless/LAN network for pip installation and use of this package. If you must stick with the Charité net, one solution would be to configure a proxy, but that may be complicated.
+
+## This is another way in which you may choose to resolve the prohibition errors:
 
 You may need to trust your organization's CA:
 ```bash
@@ -29,8 +31,7 @@ conda config --set ssl_verify true
 ```
 
 
-
-An Alternative (safer) approach: point Conda at Python's certifi bundle instead of turning off verification globally:
+## An Alternative (safer) approach: point Conda at Python's certifi bundle instead of turning off verification globally:
 ```bash
 # Install certifi in your base env (if not already)
 conda install -n base certifi
