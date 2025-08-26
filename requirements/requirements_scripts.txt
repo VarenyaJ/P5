@@ -4,3 +4,5 @@ requests==2.32.4          # HTTP client used by scripts to call PubMed/Europe PM
 biopython==1.85           # provides Bio.Entrez for PubMed/PMC lookups and efetch from conda-forge or pip3
 selenium==4.33.0          # optional JS-driven fallback for tricky PDF pages from conda-forge or pip3
 pandas==2.2.3
+jupyterlab==4.4.4
+ipykernel==6.29.5
