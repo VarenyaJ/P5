@@ -49,7 +49,9 @@ def _get_pmcid(pmid: str) -> Optional[str]:
     retries = 4
     for i in range(retries):
         try:
-            with Entrez.elink(dbfrom="pubmed", db="pmc", id=pmid_num, linkname="pubmed_pmc") as handle:
+            with Entrez.elink(
+                dbfrom="pubmed", db="pmc", id=pmid_num, linkname="pubmed_pmc"
+            ) as handle:
                 records = Entrez.read(handle)
             link_sets_db = records[0].get("LinkSetDb", [])
             if not link_sets_db:
@@ -59,7 +61,7 @@ def _get_pmcid(pmid: str) -> Optional[str]:
             # # Retry only on 5xx; 4xx usually indicates a permanent issue.; otherwise give up.
             if 500 <= getattr(e, "code", 0) < 600:
                 # exponential backoff with jitter
-                delay = (1.5 ** i) + random.uniform(0, 0.5)
+                delay = (1.5**i) + random.uniform(0, 0.5)
                 time.sleep(delay)
                 continue
             return None
@@ -121,7 +123,8 @@ def download_pdf(pmcid: str, pmid: str, pdf_out_dir: str):
         with open(f"{pdf_out_dir}/{pmid}.pdf", "wb") as f:
             f.write(response.content)
             click.secho(
-                message=f"A PDF for {pmid} was successfully downloaded. PMCID={pmcid}.", fg="green"
+                message=f"A PDF for {pmid} was successfully downloaded. PMCID={pmcid}.",
+                fg="green",
             )
 
     except (InvalidSessionIdException, FileNotFoundError, IOError, InvalidSchema) as e:
@@ -178,7 +181,9 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
         dl_cut_off = len(all_pmids)
 
     # Slice deterministically to a set the loop will consume.
-    pmid_batch: set = set(list(all_pmids)[:dl_cut_off])  # entries of the form "PMID_1234567"
+    pmid_batch: set = set(
+        list(all_pmids)[:dl_cut_off]
+    )  # entries of the form "PMID_1234567"
 
     with tqdm(total=len(pmid_batch)) as progress_bar:
         for pmid in pmid_batch:
@@ -196,6 +201,7 @@ def pmid_downloader(pkl_file_path: str, pdf_out_dir: str, dl_cut_off: int):
         progress_bar.set_description(
             f"Processing of {str(len(pmid_batch))} PMIDs complete. {pdf_count} PDFs successfully downloaded."
         )
+
 
 if __name__ == "__main__":
     pmid_downloader()

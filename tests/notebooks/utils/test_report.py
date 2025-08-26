@@ -26,7 +26,11 @@ def test_report_initialization_and_confusion_matrix(sample_counts):
       - confusion_matrix == [[2,1],[1,0]]
     """
     rpt = Report(
-        **sample_counts, creator="tester", experiment="exp1", model="modelA", notes="unit test"
+        **sample_counts,
+        creator="tester",
+        experiment="exp1",
+        model="modelA",
+        notes="unit test",
     )
 
     meta = rpt.metadata

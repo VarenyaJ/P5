@@ -29,7 +29,9 @@ def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, l
             elif len(matches) == 0:
                 continue
 
-            pmid_by_file_dir[matches[0]].append(f"{os.path.abspath(file_path)}/{file_name}")
+            pmid_by_file_dir[matches[0]].append(
+                f"{os.path.abspath(file_path)}/{file_name}"
+            )
 
         if recursive is False:
             return pmid_by_file_dir
@@ -78,11 +80,15 @@ def create_phenopacket_dataset(
     recursive_ground_truth_dir: bool,
 ):
     input_data = _get_pmid_by_file_dir(input_data_dir, recursive_input_dir)
-    ground_truth_data = _get_pmid_by_file_dir(ground_truth_files_dir, recursive_ground_truth_dir)
+    ground_truth_data = _get_pmid_by_file_dir(
+        ground_truth_files_dir, recursive_ground_truth_dir
+    )
 
     matching_pmids = set(input_data.keys()).intersection(set(ground_truth_data.keys()))
 
-    data = [[pmid, input_data[pmid], ground_truth_data[pmid]] for pmid in matching_pmids]
+    data = [
+        [pmid, input_data[pmid], ground_truth_data[pmid]] for pmid in matching_pmids
+    ]
 
     pubmed_dataset = pd.DataFrame(data, columns=["pmid", "input", "truth"])
     pubmed_dataset = pubmed_dataset.explode(column="truth")

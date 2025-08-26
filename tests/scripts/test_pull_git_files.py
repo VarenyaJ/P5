@@ -18,10 +18,13 @@ def test_pull_git_files(request):
     runner = CliRunner()
 
     result = runner.invoke(
-        pull_git_files, [str(out_dir), "https://github.com/P2GX/phenopacket2prompt", "docs/cases/"]
+        pull_git_files,
+        [str(out_dir), "https://github.com/P2GX/phenopacket2prompt", "docs/cases/"],
     )
 
-    assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+    assert result.exit_code == 0, (
+        f"CLI exited with code {result.exit_code}: {result.output}"
+    )
 
     assert len(listdir(out_dir / "cases")) > 0
     shutil.rmtree(out_dir)
@@ -44,7 +47,9 @@ def test_pull_git_files_mocked(mock_clone, tmp_path):
     mock_clone.side_effect = mock_clone_from_effect
     result = runner.invoke(pull_git_files, [str(out_dir), repo_url, files_to_copy])
 
-    assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+    assert result.exit_code == 0, (
+        f"CLI exited with code {result.exit_code}: {result.output}"
+    )
 
     mock_clone.assert_called_once()
     call_args, call_kwargs = mock_clone.call_args
@@ -53,6 +58,8 @@ def test_pull_git_files_mocked(mock_clone, tmp_path):
     assert "to_path" in call_kwargs
 
     final_output_path = out_dir / "cases"
-    assert final_output_path.exists(), "The 'cases' directory was not created in the output."
+    assert final_output_path.exists(), (
+        "The 'cases' directory was not created in the output."
+    )
     assert (final_output_path / "dummy_file.txt").exists()
     assert (final_output_path / "dummy_file.txt").read_text() == "hello world"

@@ -3,23 +3,23 @@ Test suite for `P5.scripts.pmid_downloader`.
 
 Covers three main scenarios:
 
-1. **Integration test (network required, skipped in CI)**  
-   - Runs the CLI against real PubMed Central.  
-   - Verifies that a PMID with a valid PMCID yields a PDF, while a PMID without a PMCID yields nothing.  
+1. **Integration test (network required, skipped in CI)**
+   - Runs the CLI against real PubMed Central.
+   - Verifies that a PMID with a valid PMCID yields a PDF, while a PMID without a PMCID yields nothing.
    - Ensures the PDF parses with `docling` and is of a reasonable size.
 
-2. **Mocked positive case**  
-   - Entrez is mocked to always return a PMCID.  
-   - Selenium and requests are mocked, with requests returning a minimal valid PDF (`pdf_bytes`).  
+2. **Mocked positive case**
+   - Entrez is mocked to always return a PMCID.
+   - Selenium and requests are mocked, with requests returning a minimal valid PDF (`pdf_bytes`).
    - Verifies that one JSON file per PMID is produced with correct names.
 
-3. **Mocked negative case**  
-   - Entrez is mocked to return no PMCID links.  
+3. **Mocked negative case**
+   - Entrez is mocked to return no PMCID links.
    - Verifies the downloader exits cleanly but produces no output files.
 
 Fixtures:
-- `pdf_bytes`: minimal valid PDF for mocking.  
-- `test_pmids_with_pdf`: PMIDs that should yield PDFs under mocks.  
+- `pdf_bytes`: minimal valid PDF for mocking.
+- `test_pmids_with_pdf`: PMIDs that should yield PDFs under mocks.
 - `test_pmids_no_pdf`: PMIDs that should yield no PDFs under mocks.
 
 These tests together ensure both the real downloader path and its mocked fallback
@@ -118,7 +118,9 @@ def test_pmid_downloader(test_pmids, request):
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
         pdf_file_names = {f for f in os.listdir(output_dir)}
         pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(output_dir)}
@@ -176,12 +178,14 @@ def test_pmid_downloader_with_pmcid_mocked(
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
         pdf_file_names_no_file_type = {f.split(".")[0] for f in os.listdir(output_dir)}
-        assert (
-            expected_pmids == pdf_file_names_no_file_type
-        ), "There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
+        assert expected_pmids == pdf_file_names_no_file_type, (
+            "There failed to be a correspondence between PMIDs and PDFs in the temporary directory."
+        )
 
 
 @mock.patch("P5.scripts.pmid_downloader.Entrez")
@@ -215,7 +219,9 @@ def test_pmid_downloader_no_pmcid_mocked(mock_entrez, test_pmids_no_pdf, request
         runner = CliRunner()
         result = runner.invoke(pmid_downloader, [pmids_pkl_file_path, output_dir, "0"])
 
-        assert result.exit_code == 0, f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
         assert os.listdir(output_dir) == [], (
             "When running test_pmid_downloader_no_pmcid_mocked, "

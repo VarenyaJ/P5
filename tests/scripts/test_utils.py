@@ -9,7 +9,8 @@ from P5.scripts.utils import find_pmids
 
 
 @pytest.mark.parametrize(
-    "recursive, expected_pmids", [(True, {"PMID_8755636", "PMID_16636245"}), (False, set())]
+    "recursive, expected_pmids",
+    [(True, {"PMID_8755636", "PMID_16636245"}), (False, set())],
 )
 def test_find_pmids(recursive: bool, expected_pmids: set[str], test_pmids: set[str]):
     """
@@ -32,7 +33,8 @@ def test_find_pmids(recursive: bool, expected_pmids: set[str], test_pmids: set[s
             └── PMID_8800795_1.json
     """
     packet_dirs = [
-        "".join(random.choice(string.ascii_letters) for _ in range(5)) for _ in test_pmids
+        "".join(random.choice(string.ascii_letters) for _ in range(5))
+        for _ in test_pmids
     ]
     with tempfile.TemporaryDirectory() as tmp_dir:
         for i, pmid in enumerate(test_pmids):

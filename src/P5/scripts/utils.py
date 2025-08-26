@@ -10,7 +10,9 @@ import pickle
 pmid_regex = re.compile(r"PMID_\d{1,8}")
 
 
-def find_pmids(directory: Union[str, pathlib.Path], recursive: Optional[bool] = False) -> set[str]:
+def find_pmids(
+    directory: Union[str, pathlib.Path], recursive: Optional[bool] = False
+) -> set[str]:
     """Finds PubMed IDs (PMIDs) in filenames within a given directory.
 
     Parameters

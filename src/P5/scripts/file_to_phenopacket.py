@@ -67,7 +67,9 @@ file_types = [".pdf", ".pptx", ".docx", ".doc", ".html", ".txt"]
     help=f"The type of file to process. Possible types are: {file_types}",
     default=".pdf",
 )
-def file_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str, file_type: str):
+def file_to_phenopacket(
+    file_dir: str, out_dir: str, prompt: str, model: str, file_type: str
+):
     """
     Convert all files of a given type in `file_dir` into Phenopacket JSONs in `out_dir`.
 
@@ -108,7 +110,9 @@ def file_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str, fi
         # Docling can raise if a document is malformed; test assets are simple and safe.
         converter = DocumentConverter()
         filename_to_content = {
-            file_dir.split("/")[-1]: converter.convert(file_dir).document.export_to_text()
+            file_dir.split("/")[-1]: converter.convert(
+                file_dir
+            ).document.export_to_text()
             for file_dir in file_dirs
         }
     elif file_type.lower() == ".txt":
@@ -139,7 +143,8 @@ def file_to_phenopacket(file_dir: str, out_dir: str, prompt: str, model: str, fi
             # If the model ignored format hints or emitted trailing prose, keep the pipeline going.
             click.secho(
                 message=f"{model} did not return valid JSON for {file_name}; writing minimal phenopacket.",
-                err=True, fg="yellow",
+                err=True,
+                fg="yellow",
             )
             phenopacket_json = _minimal_pp(patient_id=stem)
 
