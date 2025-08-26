@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from click.testing import CliRunner
 
-from scripts.create_phenopacket_dataset import create_phenopacket_dataset
+from P5.scripts.create_phenopacket_dataset import create_phenopacket_dataset
 
 
 @pytest.mark.parametrize(
@@ -90,9 +90,9 @@ def test_filter_phenopackets(
             ],
         )
 
-        assert (
-            result.exit_code == 0
-        ), f"CLI exited with code {result.exit_code}: {result.output}"
+        assert result.exit_code == 0, (
+            f"CLI exited with code {result.exit_code}: {result.output}"
+        )
 
         phenopacket_df = pd.read_csv(out_dir / "phenopacket_df.csv")
 

@@ -1,7 +1,7 @@
 import click
 import pickle
 
-from scripts.utils import find_pmids
+from P5.scripts.utils import find_pmids
 
 
 @click.command(
@@ -13,8 +13,11 @@ PMID_DIRECTORY:            Directory whose file names will be searched for PMIDs
 PKL_FILE_PATH:             The file path of the .pkl file which will contain those PMIDs as a set.
 RECURSIVE DIR SEARCH:      If True then the search through PMID_directory looks through subdirectories.
 
+Usage:
+    python -m P5.scripts.create_pmid_pkl <PMID_DIRECTORY> <PKL_FILE_PATH> [--recursive_dir_search]
+
 Example:
-assets/cases assets/pmids.pkl
+    python -m P5.scripts.create_pmid_pkl assets/cases assets/pmids.pkl --recursive_dir_search
 """
 )
 @click.argument("pmid_directory", type=click.Path(exists=True, dir_okay=True))
@@ -25,7 +28,6 @@ assets/cases assets/pmids.pkl
 def create_pmid_pkl(
     pmid_directory: str, pkl_file_path: str, recursive_dir_search: bool
 ):
-
     pmid_set = find_pmids(pmid_directory, recursive_dir_search)
     click.secho(
         message=f"{len(pmid_set)} PMIDs found within {pmid_directory}", fg="green"

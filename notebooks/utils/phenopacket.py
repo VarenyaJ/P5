@@ -18,7 +18,6 @@ class InvalidPhenopacketError(ValueError):
 
 
 class Phenopacket:
-
     def __init__(self, phenopacket_json: Any) -> None:
         """
         Initialize and validate a Phenopacket instance.

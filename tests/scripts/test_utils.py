@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-from scripts.utils import find_pmids
+from P5.scripts.utils import find_pmids
 
 
 @pytest.mark.parametrize(

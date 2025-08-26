@@ -30,7 +30,7 @@ def test_report_initialization_and_confusion_matrix(sample_counts):
         creator="tester",
         experiment="exp1",
         model="modelA",
-        notes="unit test"
+        notes="unit test",
     )
 
     meta = rpt.metadata

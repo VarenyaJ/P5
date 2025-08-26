@@ -1,0 +1,126 @@
+# version = "0.1.0"
+
+# ===============================
+# P5: Prompt-driven Parsing of Prenatal PDFs to Phenopackets
+# Single-source packaging config using Hatch (PEP 517/621)
+# ===============================
+
+[build-system]
+# Hatchling is the lightweight build backend from Hatch.
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "P5"
+
+# We source the version from src/P5/__init__.py via [tool.hatch.version] below.
+# (Avoid duplicating the version here.)
+dynamic = ["version"]
+
+description = "Prompt-driven Parsing of Prenatal PDFs to Phenopackets"
+readme = "README.md"
+
+# Keep this high if you truly require 3.13 features; otherwise consider lowering
+# to widen your user base (e.g., >=3.10). Tests currently pass on 3.13.
+requires-python = ">=3.13"
+
+# Choose AGPL-3.0 and make sure your LICENSE file actually contains this license.
+license = { file = "LICENSE" }
+
+authors = [{ name = "Varenya Jain", email = "varenyajj@gmail.com" }]
+
+keywords = ["Prenatal Genomics", "Global Alliance for Genomics and Health", "Human Phenotype Ontology", "Fetal Sequencing Consortium", "Large-Language Model"]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+# Keep install-time deps minimal; most users will install via Conda env or requirements files.
+# Extras mirror our requirements/*.txt so `pip install .[llm,scripts,test]` works too.
+dependencies = []
+
+[project.optional-dependencies]
+# LLM / notebook / doc parsing bits used by some workflows
+llm = ["ollama==0.5.1", "docling==2.36.1", "phenopackets==2.0.2.post4", "protobuf==3.20.3", "scikit-learn==1.7.0", "jupyterlab==4.4.4", "ipykernel==6.29.5"]
+
+# Script-level deps for the command-line utilities
+scripts = ["click==8.2.1", "GitPython==3.1.44", "requests==2.32.4", "biopython==1.85", "selenium==4.33.0", "pandas==2.2.3"]
+
+# Dev/test tooling
+test = ["black==25.1.0", "pytest==8.4.0", "ruff==0.12.1"]
+
+#TODO:
+#[project.optional-dependencies]
+#base=[]
+#scripts=[]
+#test=[]
+#[tool.setuptools.dynamic.optional-dependencies]
+#base = {file = ["requirements/requirements.txt"]}
+#scripts = {file = ["requirements/requirements_scripts.txt"]}
+#test = {file = ["requirements/requirements_test.txt"]}
+
+[project.urls]
+homepage = "https://github.com/VarenyaJ/P5"
+repository = "https://github.com/VarenyaJ/P5.git"
+documentation = "https://github.com/VarenyaJ/P5.git"
+bugtracker = "https://github.com/VarenyaJ/P5/issues"
+
+# ---- CLI entry points ----
+[project.scripts]
+# Primary CLI (aligns with: python -m P5.scripts or python -m P5 if we re-export)
+# main P5 CLI (point this at our click group)
+# p5 = "P5.__main__:main"
+p5 = "P5.scripts.__main__:cli"
+p5-pdf-parse = "P5.cli.pdf_parse:main"  # direct access to the `pdf-parse` helper without teaching people the module path
+
+# Sub-tools / helper CLIs we referenced in README (adjust module paths if different)
+pull-git-files = "P5.cli.pull_git_files:main"
+create-pmid-pkl = "P5.cli.create_pmid_pkl:main"
+pmid-downloader = "P5.scripts.pmid_downloader:pmid_downloader"
+create-phenopacket-dataset = "P5.scripts.create_phenopacket_dataset:create_phenopacket_dataset"
+file-to-phenopacket = "P5.scripts.file_to_phenopacket:file_to_phenopacket"
+
+# ---- Hatch build config ----
+[tool.hatch.version]
+# if we prefer single-source versioning from __init__.py later
+path = "src/P5/__init__.py"
+
+[tool.hatch.build]
+# Keep wheels lean; skip common junk directories.
+skip-excluded-dirs = true
+
+[tool.hatch.build.targets.wheel]
+# Package discovery: the code lives under src/
+packages = ["src/P5"]
+include = ["README.md", "LICENSE", "requirements/**", "tests/data/**"]
+
+[tool.hatch.build.targets.sdist]
+# Files shipped in the source distribution (sdist)
+include = [
+  "src/**",
+  "README.md",
+  "LICENSE",
+  "requirements/**",
+  "tests/data/**",
+  "pytest.ini",
+  "ruff.toml",
+]
+
+# ---- Tooling (kept light; most settings live in dedicated config files already, e.g. ruff.toml & pytest.ini) ----
+[tool.ruff]
+# defer to ruff.toml in repo; this stanza is a harmless anchor
+# This keeps IDEs/tooling happy when they look here.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]

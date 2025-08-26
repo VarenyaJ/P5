@@ -7,7 +7,7 @@ from typing import DefaultDict
 import click
 import pandas as pd
 
-from scripts.utils import pmid_regex
+from P5.scripts.utils import pmid_regex
 
 
 def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, list]:
@@ -59,11 +59,17 @@ def _get_pmid_by_file_dir(directory: str, recursive: bool) -> defaultdict[str, l
     -------
     None
         The function writes the filtered data to a CSV file specified by `dataset_out_dir`.
+    
+    Usage:
+        python -m P5.scripts.create_phenopacket_dataset <INPUT_DATA_DIR> <GROUND_TRUTH_FILES_DIR> <DATASET_OUT_DIR> [--recursive_input_dir] [--recursive_ground_truth_dir]
+
+    Example:
+        python -m P5.scripts.create_phenopacket_dataset scripts/data/tmp/phenopacket_store/pmid_pdfs scripts/data/tmp/phenopacket_store/notebooks scripts/data/tmp/PMID_PDF_Phenopacket_list.csv --recursive_ground_truth_dir True
     """
 )
 @click.argument("input_data_dir", type=click.Path(exists=True))
 @click.argument("ground_truth_files_dir", type=click.Path(exists=True))
-@click.argument("dataset_out_dir", type=click.Path())
+@click.argument("dataset_out_dir", type=click.Path(exists=False))
 @click.option("--recursive_input_dir", type=click.BOOL)
 @click.option("--recursive_ground_truth_dir", type=click.BOOL)
 def create_phenopacket_dataset(
