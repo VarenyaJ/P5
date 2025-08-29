@@ -13,7 +13,8 @@ Usage:
 from __future__ import annotations
 
 import os
-import pickle, logging
+import pickle
+import logging
 from pathlib import Path
 from typing import Dict
 
@@ -21,6 +22,7 @@ from docling.document_converter import DocumentConverter, ConversionError
 from pypdfium2._helpers.misc import PdfiumError
 
 logger = logging.getLogger(__name__)
+
 
 class PdfTextCache:
     """
@@ -99,4 +101,6 @@ class PdfTextCache:
                 pickle.dump(self._cache, f)
         except OSError as e:
             # Non-fatal: if persistence fails, in-memory cache still helps
-            logger.debug("Failed to persist pdf_text_cache to %s: %s", self.cache_path, e)
+            logger.debug(
+                "Failed to persist pdf_text_cache to %s: %s", self.cache_path, e
+            )

@@ -31,7 +31,8 @@ from __future__ import annotations
 import os
 import sys
 import shutil
-import subprocess, logging
+import subprocess
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,9 @@ def setup_phenopacket_store_dataset(
     # Stage 0: Clean the ground-truth notebooks dir to ensure a fresh clone
     # (empirically avoids cases where git can't overwrite an existing directory)
     # -------------------------------------------------------------------------
-    logger.info("[Stage 0] Preparing ground-truth notebooks directory for a fresh clone...")
+    logger.info(
+        "[Stage 0] Preparing ground-truth notebooks directory for a fresh clone..."
+    )
     target_notebooks_dir = os.path.join(phenopacket_store_root_dir, "notebooks")
     if os.path.exists(target_notebooks_dir):
         logger.info("  - Removing existing directory: %s", target_notebooks_dir)
@@ -166,18 +169,18 @@ def setup_phenopacket_store_dataset(
     else:
         logger.info("  - Skipping: dataset CSV already exists at: %s", dataset_csv_path)
 
-
     # -------------------------------------------------------------------------
     # Final sanity prints
     # -------------------------------------------------------------------------
     if os.path.isdir(pdf_input_directory):
         logger.info("Summary of created/verified paths:")
         logger.info("  - PDF inputs folder:             %s", pdf_input_directory)
-        logger.info("  - Ground truth folder:           %s", ground_truth_notebooks_directory)
+        logger.info(
+            "  - Ground truth folder:           %s", ground_truth_notebooks_directory
+        )
         logger.info("  - Dataset CSV path:              %s", dataset_csv_path)
     else:
         logger.error("PDF input directory not found:    %s", pdf_input_directory)
-
 
     return pmids_pickle_path
 

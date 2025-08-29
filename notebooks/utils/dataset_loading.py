@@ -17,9 +17,12 @@ Usage:
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Tuple
 import pandas as pd
 import logging
+
+logger = logging.getLogger(__name__)
+
 
 # Columns that must exist in the dataset CSV
 REQUIRED_DATASET_COLUMNS = {"pmid", "input", "truth"}
@@ -65,7 +68,9 @@ def load_and_validate_dataset(
     dataframe_cases = pd.read_csv(dataset_csv_path)
     rows_loaded = len(dataframe_cases)
     if verbose:
-        logger.info("[dataset] Loaded %d row(s) from CSV: %s", rows_loaded, dataset_csv_path)
+        logger.info(
+            "[dataset] Loaded %d row(s) from CSV: %s", rows_loaded, dataset_csv_path
+        )
 
     # 2) Verify required columns
     missing_columns = REQUIRED_DATASET_COLUMNS - set(dataframe_cases.columns)
@@ -74,7 +79,10 @@ def load_and_validate_dataset(
 
     # 3) Light existence checks (non-fatal; informational)
     if verbose and max_input_existence_checks > 0:
-        logger.info("[dataset] Checking existence of first %d input files:", max_input_existence_checks)
+        logger.info(
+            "[dataset] Checking existence of first %d input files:",
+            max_input_existence_checks,
+        )
         for file_path in dataframe_cases["input"].head(max_input_existence_checks):
             file_status = "FOUND" if os.path.isfile(file_path) else "MISSING"
             logger.info("  - %s: %s", file_path, file_status)
@@ -88,7 +96,11 @@ def load_and_validate_dataset(
     duplicates_removed = original_count - rows_after_dedup
 
     if verbose:
-        logger.info("[dataset] Deduplicated PMIDs: removed %d, now %d unique PMIDs", duplicates_removed, rows_after_dedup)
+        logger.info(
+            "[dataset] Deduplicated PMIDs: removed %d, now %d unique PMIDs",
+            duplicates_removed,
+            rows_after_dedup,
+        )
 
     dataset_stats = {
         "rows_loaded": rows_loaded,
