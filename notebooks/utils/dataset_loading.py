@@ -17,8 +17,9 @@ Usage:
 from __future__ import annotations
 
 import os
-from typing import Dict, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 import pandas as pd
+import logging
 
 # Columns that must exist in the dataset CSV
 REQUIRED_DATASET_COLUMNS = {"pmid", "input", "truth"}
@@ -64,7 +65,7 @@ def load_and_validate_dataset(
     dataframe_cases = pd.read_csv(dataset_csv_path)
     rows_loaded = len(dataframe_cases)
     if verbose:
-        print(f"[dataset] Loaded {rows_loaded} row(s) from CSV: {dataset_csv_path}")
+        logger.info("[dataset] Loaded %d row(s) from CSV: %s", rows_loaded, dataset_csv_path)
 
     # 2) Verify required columns
     missing_columns = REQUIRED_DATASET_COLUMNS - set(dataframe_cases.columns)
@@ -73,12 +74,10 @@ def load_and_validate_dataset(
 
     # 3) Light existence checks (non-fatal; informational)
     if verbose and max_input_existence_checks > 0:
-        print(
-            f"[dataset] Checking existence of first {max_input_existence_checks} input files:"
-        )
+        logger.info("[dataset] Checking existence of first %d input files:", max_input_existence_checks)
         for file_path in dataframe_cases["input"].head(max_input_existence_checks):
             file_status = "FOUND" if os.path.isfile(file_path) else "MISSING"
-            print(f"  - {file_path}: {file_status}")
+            logger.info("  - %s: %s", file_path, file_status)
 
     # 4) Deduplicate by PMID (keep first)
     original_count = len(dataframe_cases)
@@ -89,10 +88,7 @@ def load_and_validate_dataset(
     duplicates_removed = original_count - rows_after_dedup
 
     if verbose:
-        print(
-            f"[dataset] Deduplicated PMIDs: removed {duplicates_removed}, "
-            f"now {rows_after_dedup} unique PMIDs"
-        )
+        logger.info("[dataset] Deduplicated PMIDs: removed %d, now %d unique PMIDs", duplicates_removed, rows_after_dedup)
 
     dataset_stats = {
         "rows_loaded": rows_loaded,

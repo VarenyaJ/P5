@@ -13,13 +13,14 @@ Usage:
 from __future__ import annotations
 
 import os
-import pickle
+import pickle, logging
 from pathlib import Path
 from typing import Dict
 
 from docling.document_converter import DocumentConverter, ConversionError
 from pypdfium2._helpers.misc import PdfiumError
 
+logger = logging.getLogger(__name__)
 
 class PdfTextCache:
     """
@@ -87,8 +88,8 @@ class PdfTextCache:
             try:
                 with open(self.cache_path, "rb") as f:
                     return pickle.load(f)
-            except Exception:
-                # Corrupt cache → start fresh
+            except (OSError, pickle.UnpicklingError, EOFError):
+                # Corrupt or unreadable cache → start fresh
                 return {}
         return {}
 
@@ -96,6 +97,6 @@ class PdfTextCache:
         try:
             with open(self.cache_path, "wb") as f:
                 pickle.dump(self._cache, f)
-        except Exception:
+        except OSError as e:
             # Non-fatal: if persistence fails, in-memory cache still helps
-            pass
+            logger.debug("Failed to persist pdf_text_cache to %s: %s", self.cache_path, e)

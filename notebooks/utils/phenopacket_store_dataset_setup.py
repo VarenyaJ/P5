@@ -31,7 +31,9 @@ from __future__ import annotations
 import os
 import sys
 import shutil
-import subprocess
+import subprocess, logging
+
+logger = logging.getLogger(__name__)
 
 
 def setup_phenopacket_store_dataset(
@@ -83,16 +85,16 @@ def setup_phenopacket_store_dataset(
     # Stage 0: Clean the ground-truth notebooks dir to ensure a fresh clone
     # (empirically avoids cases where git can't overwrite an existing directory)
     # -------------------------------------------------------------------------
-    print("[Stage 0] Preparing ground-truth notebooks directory for a fresh clone...")
+    logger.info("[Stage 0] Preparing ground-truth notebooks directory for a fresh clone...")
     target_notebooks_dir = os.path.join(phenopacket_store_root_dir, "notebooks")
     if os.path.exists(target_notebooks_dir):
-        print(f"  - Removing existing directory: {target_notebooks_dir}")
+        logger.info("  - Removing existing directory: %s", target_notebooks_dir)
         shutil.rmtree(target_notebooks_dir)
 
     # -------------------------------------------------------------------------
     # Stage 1: Clone phenopacket-store notebooks
     # -------------------------------------------------------------------------
-    print("[Stage 1] Cloning 'phenopacket-store' notebooks...")
+    logger.info("[Stage 1] Cloning 'phenopacket-store' notebooks...")
     subprocess.run(
         [
             sys.executable,
@@ -104,12 +106,12 @@ def setup_phenopacket_store_dataset(
         ],
         check=True,
     )
-    print(f"  - Stage 1 Complete. Produced: {ground_truth_notebooks_directory}")
+    logger.info(f"[Stage 1] Complete. Produced: {ground_truth_notebooks_directory}")
 
     # -------------------------------------------------------------------------
     # Stage 2: Discover PMIDs in the cloned notebooks and persist to pmids.pkl
     # -------------------------------------------------------------------------
-    print("[Stage 2] Scanning notebooks for PMIDs and creating pmids.pkl...")
+    logger.info("[Stage 2] Scanning notebooks for PMIDs and creating pmids.pkl...")
     subprocess.run(
         [
             sys.executable,
@@ -121,12 +123,12 @@ def setup_phenopacket_store_dataset(
         ],
         check=True,
     )
-    print("  - Stage 2 Complete.")
+    logger.info("  - Stage 2 Complete.")
 
     # -------------------------------------------------------------------------
     # Stage 3: Download PDFs for those PMIDs into pdf_input_directory
     # -------------------------------------------------------------------------
-    print("[Stage 3] Downloading PDFs for discovered PMIDs...")
+    logger.info("[Stage 3] Downloading PDFs for discovered PMIDs...")
     subprocess.run(
         [
             sys.executable,
@@ -138,13 +140,13 @@ def setup_phenopacket_store_dataset(
         ],
         check=True,
     )
-    print("  - Stage 3 Complete.")
+    logger.info("  - Stage 3 Complete.")
 
     # -------------------------------------------------------------------------
     # Stage 4: Build the CSV mapping PDFs -> ground-truth phenopacket JSONs
     # (only if it does not already exist)
     # -------------------------------------------------------------------------
-    print("[Stage 4] Building dataset CSV (if missing)...")
+    logger.info("[Stage 4] Building dataset CSV (if missing)...")
     if not os.path.isfile(dataset_csv_path):
         subprocess.run(
             [
@@ -159,21 +161,23 @@ def setup_phenopacket_store_dataset(
             ],
             check=True,
         )
-        print(f"  - Created dataset CSV at: {dataset_csv_path}")
-        print("  - Stage 4 Complete.")
+        logger.info("  - Created dataset CSV at: %s", dataset_csv_path)
+        logger.info("  - Stage 4 Complete.")
     else:
-        print(f"  - Skipping: dataset CSV already exists at: {dataset_csv_path}")
+        logger.info("  - Skipping: dataset CSV already exists at: %s", dataset_csv_path)
+
 
     # -------------------------------------------------------------------------
     # Final sanity prints
     # -------------------------------------------------------------------------
     if os.path.isdir(pdf_input_directory):
-        print("Summary of created/verified paths:")
-        print("  - PDF inputs folder:        %s" % pdf_input_directory)
-        print("  - Ground truth folder:      %s" % ground_truth_notebooks_directory)
-        print("  - Dataset CSV path:         %s" % dataset_csv_path)
+        logger.info("Summary of created/verified paths:")
+        logger.info("  - PDF inputs folder:             %s", pdf_input_directory)
+        logger.info("  - Ground truth folder:           %s", ground_truth_notebooks_directory)
+        logger.info("  - Dataset CSV path:              %s", dataset_csv_path)
     else:
-        print("ERROR: PDF input directory not found: %s" % pdf_input_directory)
+        logger.error("PDF input directory not found:    %s", pdf_input_directory)
+
 
     return pmids_pickle_path
 
@@ -216,4 +220,4 @@ if __name__ == "__main__":
         dataset_csv_path=args.dataset_csv_path,
         max_pdfs_to_download=args.max_pdfs,
     )
-    print("PMIDs pickle created at:", returned_pmids_pkl)
+    logger.info("PMIDs pickle created at: %s", returned_pmids_pkl)

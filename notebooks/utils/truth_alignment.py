@@ -127,7 +127,7 @@ def load_and_align_truth(
         # 3) Best-effort patient id (for naming outputs later)
         try:
             patient_id = wrapped_truth.to_json().get("subject", {}).get("id")
-        except Exception:
+        except (AttributeError, TypeError):
             patient_id = None
         patient_id = patient_id or pmid_value  # fallback
 

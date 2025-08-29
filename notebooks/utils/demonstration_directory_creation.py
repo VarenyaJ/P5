@@ -26,12 +26,14 @@ import sys
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
+import logging
 
 
 # ----------------------------
 # Dataclass: store all important paths
 # ----------------------------
 
+logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class DemonstrationPaths:
@@ -154,14 +156,10 @@ def patch_pythonpath_and_create_demonstration_directories(
     _ensure_directory_on_sys_path(paths.notebooks_utilities_directory)
 
     if emit_verbose_logs:
-        print(
-            "PYTHONPATH patched with:",
-            str(paths.source_code_directory),
-            str(paths.notebooks_utilities_directory),
-        )
-        print(f"Project Root:         {paths.project_root_directory}")
-        print(f"Source Folder:        {paths.source_code_directory}")
-        print(f"Utilities Folder:     {paths.notebooks_utilities_directory}")
+        logger.info("PYTHONPATH patched with: %s %s", str(paths.source_code_directory), str(paths.notebooks_utilities_directory))
+        logger.info("Project Root:         %s", paths.project_root_directory)
+        logger.info("Source Folder:        %s", paths.source_code_directory)
+        logger.info("Utilities Folder:     %s", paths.notebooks_utilities_directory)
 
     # 3) Validate utils can be imported (early failure if environment is wrong)
     try:
@@ -185,27 +183,14 @@ def patch_pythonpath_and_create_demonstration_directories(
         directory.mkdir(parents=True, exist_ok=True)
 
     if emit_verbose_logs:
-        print(
-            f"Created/checked PDF input folder:                  {paths.pdf_input_directory}"
-        )
-        print(
-            f"Created/checked ground-truth notebooks folder:     {paths.ground_truth_notebooks_directory}"
-        )
-        print(
-            f"Created/checked dataset CSV parent folder:         {paths.dataset_csv_file_path.parent}"
-        )
-        print(
-            f"Created/checked experimental data root:            {paths.experimental_data_root_directory}"
-        )
-        print(
-            f"Created/checked LLM raw outputs folder:            {paths.llm_raw_output_directory}"
-        )
-        print(
-            f"Created/checked validated JSONs folder:            {paths.validated_jsons_output_directory}"
-        )
-        print(
-            f"Created/checked reports folder:                    {paths.evaluation_report_file_path.parent}"
-        )
+        logger.info("Created/checked PDF input folder:                  %s", paths.pdf_input_directory)
+        logger.info("Created/checked ground-truth notebooks folder:     %s", paths.ground_truth_notebooks_directory)
+        logger.info("Created/checked dataset CSV parent folder:         %s", paths.dataset_csv_file_path.parent)
+        logger.info("Created/checked experimental data root:            %s", paths.experimental_data_root_directory)
+        logger.info("Created/checked LLM raw outputs folder:            %s", paths.llm_raw_output_directory)
+        logger.info("Created/checked validated JSONs folder:            %s", paths.validated_jsons_output_directory)
+        logger.info("Created/checked reports folder:                    %s", paths.evaluation_report_file_path.parent)
+
 
     return paths
 
@@ -215,36 +200,15 @@ if __name__ == "__main__":
     resolved_paths = patch_pythonpath_and_create_demonstration_directories(
         emit_verbose_logs=True
     )
-    print("\nEnvironment setup complete.")
-    print(f"Dataset CSV path:   {resolved_paths.dataset_csv_file_path}")
-    print(f"Report output path: {resolved_paths.evaluation_report_file_path}")
+    logger.info("Environment setup complete.")
+    logger.info("Dataset CSV path:   %s", resolved_paths.dataset_csv_file_path)
+    logger.info("Report output path: %s", resolved_paths.evaluation_report_file_path)
+    logger.info("=== Final Path Summary ===")
+    logger.info("Created the PDF inputs folder:                               %s", resolved_paths.pdf_input_directory)
+    logger.info("Created the ground truth folder:                             %s", resolved_paths.ground_truth_notebooks_directory)
+    logger.info("Created the PATH for the CSV of `phenopacket-store`:         %s", resolved_paths.dataset_csv_file_path)
+    logger.info("Created the PATH for the experimentally generated files:     %s", resolved_paths.experimental_data_root_directory)
+    logger.info("Created the LLM outputs folder:                              %s", resolved_paths.llm_raw_output_directory)
+    logger.info("Created the validated JSONs folder:                          %s", resolved_paths.validated_jsons_output_directory)
+    logger.info("Created the evaluation report path:                          %s", resolved_paths.evaluation_report_file_path)
 
-    print("\n=== Final Path Summary ===")
-    print(
-        "Created the PDF inputs folder:                               %s"
-        % resolved_paths.pdf_input_directory
-    )
-    print(
-        "Created the ground truth folder:                             %s"
-        % resolved_paths.ground_truth_notebooks_directory
-    )
-    print(
-        "Created the PATH for the CSV of `phenopacket-store`:         %s"
-        % resolved_paths.dataset_csv_file_path
-    )
-    print(
-        "Created the PATH for the experimentally generated files:     %s"
-        % resolved_paths.experimental_data_root_directory
-    )
-    print(
-        "Created the LLM outputs folder:                              %s"
-        % resolved_paths.llm_raw_output_directory
-    )
-    print(
-        "Created the validated JSONs folder:                          %s"
-        % resolved_paths.validated_jsons_output_directory
-    )
-    print(
-        "Created the evaluation report path:                          %s"
-        % resolved_paths.evaluation_report_file_path
-    )
