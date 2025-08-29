@@ -90,7 +90,11 @@ def load_and_align_truth(
         # sanity: truth file must exist
         if not os.path.isfile(truth_json_path):
             list_of_skipped_cases.append(
-                {"pmid": pmid_value, "truth": truth_json_path, "reason": "truth file missing"}
+                {
+                    "pmid": pmid_value,
+                    "truth": truth_json_path,
+                    "reason": "truth file missing",
+                }
             )
             continue
 
@@ -99,7 +103,11 @@ def load_and_align_truth(
             raw_truth_json = _lenient_parse_truth_json(truth_json_path)
         except (ParseError, JSONDecodeError) as e:
             list_of_skipped_cases.append(
-                {"pmid": pmid_value, "truth": truth_json_path, "reason": f"truth schema/parse error: {e}"}
+                {
+                    "pmid": pmid_value,
+                    "truth": truth_json_path,
+                    "reason": f"truth schema/parse error: {e}",
+                }
             )
             continue
 
@@ -108,7 +116,11 @@ def load_and_align_truth(
             wrapped_truth = Phenopacket(raw_truth_json)
         except InvalidPhenopacketError as e:
             list_of_skipped_cases.append(
-                {"pmid": pmid_value, "truth": truth_json_path, "reason": f"invalid phenopacket: {e}"}
+                {
+                    "pmid": pmid_value,
+                    "truth": truth_json_path,
+                    "reason": f"invalid phenopacket: {e}",
+                }
             )
             continue
 

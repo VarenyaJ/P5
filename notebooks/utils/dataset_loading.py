@@ -25,9 +25,7 @@ REQUIRED_DATASET_COLUMNS = {"pmid", "input", "truth"}
 
 
 def load_and_validate_dataset(
-    dataset_csv_path: str,
-    max_input_existence_checks: int = 10,
-    verbose: bool = True,
+    dataset_csv_path: str, max_input_existence_checks: int = 10, verbose: bool = True
 ) -> Tuple[pd.DataFrame, Dict[str, int]]:
     """
     Load and validate the dataset CSV that maps:
@@ -75,24 +73,26 @@ def load_and_validate_dataset(
 
     # 3) Light existence checks (non-fatal; informational)
     if verbose and max_input_existence_checks > 0:
-        print(f"[dataset] Checking existence of first {max_input_existence_checks} input files:")
+        print(
+            f"[dataset] Checking existence of first {max_input_existence_checks} input files:"
+        )
         for file_path in dataframe_cases["input"].head(max_input_existence_checks):
             file_status = "FOUND" if os.path.isfile(file_path) else "MISSING"
             print(f"  - {file_path}: {file_status}")
 
     # 4) Deduplicate by PMID (keep first)
     original_count = len(dataframe_cases)
-    dataframe_cases = (
-        dataframe_cases
-        .drop_duplicates(subset="pmid", keep="first")
-        .reset_index(drop=True)
-    )
+    dataframe_cases = dataframe_cases.drop_duplicates(
+        subset="pmid", keep="first"
+    ).reset_index(drop=True)
     rows_after_dedup = len(dataframe_cases)
     duplicates_removed = original_count - rows_after_dedup
 
     if verbose:
-        print(f"[dataset] Deduplicated PMIDs: removed {duplicates_removed}, "
-              f"now {rows_after_dedup} unique PMIDs")
+        print(
+            f"[dataset] Deduplicated PMIDs: removed {duplicates_removed}, "
+            f"now {rows_after_dedup} unique PMIDs"
+        )
 
     dataset_stats = {
         "rows_loaded": rows_loaded,

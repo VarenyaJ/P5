@@ -18,7 +18,7 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional
 
 from notebooks.utils.hpo_extraction import (
     extract_hpo_terms,
@@ -71,7 +71,9 @@ def _load_clinical_text(file_path: str) -> str:
             doc = converter.convert(file_path)
             return doc.document.export_to_text()
         except (ConversionError, PdfiumError) as e:
-            raise RuntimeError(f"Could not convert PDF to text ({os.path.basename(file_path)}): {e}")
+            raise RuntimeError(
+                f"Could not convert PDF to text ({os.path.basename(file_path)}): {e}"
+            )
 
 
 def run_hpo_batch_inference(
@@ -98,21 +100,30 @@ def run_hpo_batch_inference(
     batch_result = BatchInferenceResult()
 
     total_cases = len(list_of_pmids_aligned)
-    if not (len(list_of_input_paths_aligned) == total_cases == len(list_of_patient_ids_aligned)):
+    if not (
+        len(list_of_input_paths_aligned)
+        == total_cases
+        == len(list_of_patient_ids_aligned)
+    ):
         raise ValueError(
             "Aligned inputs differ in length — ensure pmids, input paths, and patient ids are aligned 1:1."
         )
 
     for case_index, (pmid, input_path, patient_id) in enumerate(
-        zip(list_of_pmids_aligned, list_of_input_paths_aligned, list_of_patient_ids_aligned), start=1
+        zip(
+            list_of_pmids_aligned,
+            list_of_input_paths_aligned,
+            list_of_patient_ids_aligned,
+        ),
+        start=1,
     ):
         if debug_logging:
-            print(f"[batch] ({case_index}/{total_cases}) PMID={pmid} | patient_id={patient_id}")
+            print(
+                f"[batch] ({case_index}/{total_cases}) PMID={pmid} | patient_id={patient_id}"
+            )
 
         outcome = SingleCaseOutcome(
-            pmid=pmid,
-            patient_id=patient_id,
-            input_path=input_path,
+            pmid=pmid, patient_id=patient_id, input_path=input_path
         )
 
         try:
@@ -132,7 +143,9 @@ def run_hpo_batch_inference(
             # 3) Persist raw model text (optional)
             if write_raw_model_text:
                 raw_filename = f"{pmid}__raw.txt"
-                raw_output_path = os.path.join(directory_for_raw_llm_outputs, raw_filename)
+                raw_output_path = os.path.join(
+                    directory_for_raw_llm_outputs, raw_filename
+                )
                 with open(raw_output_path, "w", encoding="utf-8") as f:
                     f.write(raw_model_text)
                 outcome.raw_output_path = raw_output_path
@@ -141,8 +154,7 @@ def run_hpo_batch_inference(
 
             # 4) Build minimal predicted Phenopacket + validate via utility class
             predicted_pp_json = build_minimal_phenopacket_from_hpo_list(
-                patient_id=patient_id,
-                hpo_list=predicted_terms_for_case,
+                patient_id=patient_id, hpo_list=predicted_terms_for_case
             )
             predicted_pkt_util = UtilPhenopacket(predicted_pp_json)
             outcome.predicted_packet_util = predicted_pkt_util
@@ -150,7 +162,9 @@ def run_hpo_batch_inference(
             # 5) Persist predicted JSON (optional)
             if write_predicted_json:
                 out_filename = f"{pmid}__{patient_id}.json"
-                predicted_json_path = os.path.join(directory_for_predicted_jsons, out_filename)
+                predicted_json_path = os.path.join(
+                    directory_for_predicted_jsons, out_filename
+                )
                 with open(predicted_json_path, "w", encoding="utf-8") as f:
                     json.dump(predicted_pkt_util.to_json(), f, indent=2)
                 outcome.predicted_json_path = predicted_json_path

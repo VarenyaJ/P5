@@ -32,7 +32,6 @@ import os
 import sys
 import shutil
 import subprocess
-from typing import Optional
 
 
 def setup_phenopacket_store_dataset(
@@ -70,7 +69,9 @@ def setup_phenopacket_store_dataset(
     phenopacket_store_root_dir = os.path.join(
         src_folder, "P5", "scripts", "data", "tmp", "phenopacket_store"
     )
-    pmids_pickle_path = os.path.join(src_folder, "P5", "scripts", "data", "tmp", "pmids.pkl")
+    pmids_pickle_path = os.path.join(
+        src_folder, "P5", "scripts", "data", "tmp", "pmids.pkl"
+    )
 
     # Ensure parent folders exist
     os.makedirs(phenopacket_store_root_dir, exist_ok=True)
@@ -94,7 +95,9 @@ def setup_phenopacket_store_dataset(
     print("[Stage 1] Cloning 'phenopacket-store' notebooks...")
     subprocess.run(
         [
-            sys.executable, "-m", "P5.scripts.pull_git_files",
+            sys.executable,
+            "-m",
+            "P5.scripts.pull_git_files",
             phenopacket_store_root_dir,
             "https://github.com/monarch-initiative/phenopacket-store.git",
             "notebooks",
@@ -109,7 +112,9 @@ def setup_phenopacket_store_dataset(
     print("[Stage 2] Scanning notebooks for PMIDs and creating pmids.pkl...")
     subprocess.run(
         [
-            sys.executable, "-m", "P5.scripts.create_pmid_pkl",
+            sys.executable,
+            "-m",
+            "P5.scripts.create_pmid_pkl",
             os.path.join(phenopacket_store_root_dir, "notebooks"),
             pmids_pickle_path,
             "--recursive_dir_search",
@@ -124,7 +129,9 @@ def setup_phenopacket_store_dataset(
     print("[Stage 3] Downloading PDFs for discovered PMIDs...")
     subprocess.run(
         [
-            sys.executable, "-m", "P5.scripts.pmid_downloader",
+            sys.executable,
+            "-m",
+            "P5.scripts.pmid_downloader",
             pmids_pickle_path,
             pdf_input_directory,
             str(max_pdfs_to_download),
@@ -141,11 +148,14 @@ def setup_phenopacket_store_dataset(
     if not os.path.isfile(dataset_csv_path):
         subprocess.run(
             [
-                sys.executable, "-m", "P5.scripts.create_phenopacket_dataset",
+                sys.executable,
+                "-m",
+                "P5.scripts.create_phenopacket_dataset",
                 pdf_input_directory,
                 ground_truth_notebooks_directory,
                 dataset_csv_path,
-                "--recursive_ground_truth_dir", "True",
+                "--recursive_ground_truth_dir",
+                "True",
             ],
             check=True,
         )
@@ -165,7 +175,6 @@ def setup_phenopacket_store_dataset(
     else:
         print("ERROR: PDF input directory not found: %s" % pdf_input_directory)
 
-
     return pmids_pickle_path
 
 
@@ -175,12 +184,28 @@ def setup_phenopacket_store_dataset(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Bootstrap phenopacket-store dataset for the demo pipeline.")
-    parser.add_argument("--src-folder", required=True, help="Absolute path to the repo's 'src' folder.")
-    parser.add_argument("--pdf-input-dir", required=True, help="Directory to store downloaded PDFs.")
-    parser.add_argument("--ground-truth-notebooks-dir", required=True, help="Directory where phenopacket-store notebooks are cloned.")
-    parser.add_argument("--dataset-csv-path", required=True, help="Output CSV mapping PMIDs to (PDF, ground-truth JSON).")
-    parser.add_argument("--max-pdfs", type=int, default=0, help="Max PDFs to download (0 = unlimited).")
+    parser = argparse.ArgumentParser(
+        description="Bootstrap phenopacket-store dataset for the demo pipeline."
+    )
+    parser.add_argument(
+        "--src-folder", required=True, help="Absolute path to the repo's 'src' folder."
+    )
+    parser.add_argument(
+        "--pdf-input-dir", required=True, help="Directory to store downloaded PDFs."
+    )
+    parser.add_argument(
+        "--ground-truth-notebooks-dir",
+        required=True,
+        help="Directory where phenopacket-store notebooks are cloned.",
+    )
+    parser.add_argument(
+        "--dataset-csv-path",
+        required=True,
+        help="Output CSV mapping PMIDs to (PDF, ground-truth JSON).",
+    )
+    parser.add_argument(
+        "--max-pdfs", type=int, default=0, help="Max PDFs to download (0 = unlimited)."
+    )
 
     args = parser.parse_args()
 

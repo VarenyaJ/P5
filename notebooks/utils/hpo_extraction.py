@@ -28,16 +28,12 @@ Public API
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-__all__ = [
-    "extract_hpo_terms",
-    "build_minimal_phenopacket_from_hpo_list",
-]
+__all__ = ["extract_hpo_terms", "build_minimal_phenopacket_from_hpo_list"]
 
 # -----------------------------
 # Constants & simple utilities
@@ -51,8 +47,10 @@ _HPO_ID_RE = re.compile(r"^HP:\d{7}$")
 # doesn't mention seizures at all (only applied if no 'seiz' substring exists).
 _COMMON_FAKE_DEFAULTS = {"Seizure", "seizure"}
 
+
 def _now_iso_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 
 # -----------------------------
 # Prompt construction
@@ -94,6 +92,7 @@ JSON>>>
 (Use the correct id/label for THIS text; the above line is just a format example.)
 """
 
+
 # On retry, we resend the full task + the SAME text with a tightened "output-only" rule.
 def _format_retry_prompt(original_clinical_text: str, max_items: int) -> str:
     tightened = (
@@ -102,14 +101,19 @@ def _format_retry_prompt(original_clinical_text: str, max_items: int) -> str:
         '"hpo_id", "hpo_label", "evidence" — wrapped between <<<JSON and JSON>>>.\n'
         "Do not add any commentary.\n"
     )
-    return tightened + "\n\n" + _USER_INSTRUCTIONS.format(
-        max_items=max_items,
-        clinical_text=original_clinical_text,
+    return (
+        tightened
+        + "\n\n"
+        + _USER_INSTRUCTIONS.format(
+            max_items=max_items, clinical_text=original_clinical_text
+        )
     )
+
 
 # -----------------------------
 # Ollama call helpers
 # -----------------------------
+
 
 def _call_ollama_http(model: str, prompt: str, timeout_s: int = 180) -> str:
     """
@@ -121,19 +125,21 @@ def _call_ollama_http(model: str, prompt: str, timeout_s: int = 180) -> str:
     import json as _json
 
     conn = http.client.HTTPConnection("localhost", 11434, timeout=timeout_s)
-    body = _json.dumps({
-        "model": model,
-        "prompt": prompt,
-        "options": {
-            "temperature": 0,
-            "top_p": 1,
-            "repeat_penalty": 1.0,
-            # Ignored by some models; included to reduce truncation:
-            "num_ctx": 8192,
-        },
-        # "format": "json",   # enforce JSON if model supports it (safe no-op if not)
-        "stream": True,
-    })
+    body = _json.dumps(
+        {
+            "model": model,
+            "prompt": prompt,
+            "options": {
+                "temperature": 0,
+                "top_p": 1,
+                "repeat_penalty": 1.0,
+                # Ignored by some models; included to reduce truncation:
+                "num_ctx": 8192,
+            },
+            # "format": "json",   # enforce JSON if model supports it (safe no-op if not)
+            "stream": True,
+        }
+    )
     headers = {"Content-Type": "application/json"}
     conn.request("POST", "/api/generate", body=body, headers=headers)
     resp = conn.getresponse()
@@ -154,6 +160,7 @@ def _call_ollama_http(model: str, prompt: str, timeout_s: int = 180) -> str:
             continue
     return "".join(raw_chunks)
 
+
 def _call_ollama_cli(model: str, prompt: str, timeout_s: int = 180) -> str:
     """
     Fallback to the `ollama run` CLI if HTTP isn't available.
@@ -171,10 +178,15 @@ def _call_ollama_cli(model: str, prompt: str, timeout_s: int = 180) -> str:
     except FileNotFoundError:
         raise RuntimeError("Ollama not found. Install Ollama or start the daemon.")
     if proc.returncode != 0:
-        raise RuntimeError(f"Ollama CLI error {proc.returncode}: {proc.stderr.decode('utf-8', 'ignore')}")
+        raise RuntimeError(
+            f"Ollama CLI error {proc.returncode}: {proc.stderr.decode('utf-8', 'ignore')}"
+        )
     return proc.stdout.decode("utf-8", "ignore")
 
-def _ask_model(model: str, prompt: str, timeout_s: int = 180, debug: bool = False) -> str:
+
+def _ask_model(
+    model: str, prompt: str, timeout_s: int = 180, debug: bool = False
+) -> str:
     """
     Try HTTP first, then CLI. Returns raw text from the model.
     """
@@ -196,7 +208,10 @@ def _ask_model(model: str, prompt: str, timeout_s: int = 180, debug: bool = Fals
 # Parsing & validation
 # -----------------------------
 
-def _slice_between_sentinels(text: str, start_tok: str = _JSON_START, end_tok: str = _JSON_END) -> Optional[str]:
+
+def _slice_between_sentinels(
+    text: str, start_tok: str = _JSON_START, end_tok: str = _JSON_END
+) -> Optional[str]:
     """
     Extract substring between the first <<<JSON and the next JSON>>>.
     Returns None if not found.
@@ -207,7 +222,7 @@ def _slice_between_sentinels(text: str, start_tok: str = _JSON_START, end_tok: s
     j = text.find(end_tok, i + len(start_tok))
     if j < 0:
         return None
-    return text[i + len(start_tok): j].strip()
+    return text[i + len(start_tok) : j].strip()
 
 
 def _ensure_list(obj: Any) -> Optional[List[Any]]:
@@ -262,10 +277,8 @@ def _format_prompt(clinical_text: str, max_items: int) -> str:
 
 
 # Fallback: find any JSON array block in the text
-_JSON_ARRAY_FINDER = re.compile(
-    r"\[\s*\{.*?\}\s*\]",
-    flags=re.DOTALL,
-)
+_JSON_ARRAY_FINDER = re.compile(r"\[\s*\{.*?\}\s*\]", flags=re.DOTALL)
+
 
 def _find_any_json_array_block(text: str) -> Optional[str]:
     """
@@ -288,6 +301,7 @@ def _dict_looks_like_item(obj: Any) -> bool:
 # -----------------------------
 # Public functions
 # -----------------------------
+
 
 def extract_hpo_terms(
     clinical_text: str,
@@ -327,7 +341,9 @@ def extract_hpo_terms(
 
     prompt = _format_prompt(clinical_text, max_items=max_pheno_items)
     if debug_logging:
-        print("[extract] Sending prompt to model with deterministic settings (temperature=0).")
+        print(
+            "[extract] Sending prompt to model with deterministic settings (temperature=0)."
+        )
 
     raw_text = _ask_model(model, prompt, timeout_s=timeout_s, debug=debug_logging)
     if debug_logging:
@@ -341,7 +357,9 @@ def extract_hpo_terms(
             arr = _ensure_list(loaded)
             if arr is None:
                 return []
-            return _validate_and_filter_items(arr, clinical_text, max_items=max_pheno_items)
+            return _validate_and_filter_items(
+                arr, clinical_text, max_items=max_pheno_items
+            )
         except Exception:
             return []
 
@@ -360,16 +378,22 @@ def extract_hpo_terms(
         if scavenged:
             validated = _try_load_and_validate(scavenged)
             if debug_logging:
-                print(f"[extract] Validated {len(validated)} HPO term(s) via scavenger.")
+                print(
+                    f"[extract] Validated {len(validated)} HPO term(s) via scavenger."
+                )
             items = validated
         else:
             # Last resort: maybe the whole output is a single JSON object
             try:
                 maybe = json.loads(raw_text)
                 if _dict_looks_like_item(maybe):
-                    validated = _validate_and_filter_items([maybe], clinical_text, max_items=max_pheno_items)
+                    validated = _validate_and_filter_items(
+                        [maybe], clinical_text, max_items=max_pheno_items
+                    )
                     if debug_logging:
-                        print(f"[extract] Validated {len(validated)} HPO term(s) from single-object output.")
+                        print(
+                            f"[extract] Validated {len(validated)} HPO term(s) from single-object output."
+                        )
                     items = validated
             except Exception:
                 pass
@@ -379,7 +403,9 @@ def extract_hpo_terms(
         retry_prompt = _format_retry_prompt(clinical_text, max_items=max_pheno_items)
         if debug_logging:
             print("[extract] First pass invalid → doing single full retry.")
-        raw_text_retry = _ask_model(model, retry_prompt, timeout_s=timeout_s, debug=debug_logging)
+        raw_text_retry = _ask_model(
+            model, retry_prompt, timeout_s=timeout_s, debug=debug_logging
+        )
         if debug_logging:
             print(f"[extract] Retry raw length: {len(raw_text_retry)}")
 
@@ -387,7 +413,9 @@ def extract_hpo_terms(
         if parsed_retry is not None:
             validated_retry = _try_load_and_validate(parsed_retry)
             if debug_logging:
-                print(f"[extract] Validated {len(validated_retry)} HPO term(s) on retry.")
+                print(
+                    f"[extract] Validated {len(validated_retry)} HPO term(s) on retry."
+                )
             items = validated_retry
         else:
             if debug_logging:
@@ -396,7 +424,9 @@ def extract_hpo_terms(
             if scavenged_retry:
                 validated_retry = _try_load_and_validate(scavenged_retry)
                 if debug_logging:
-                    print(f"[extract] Validated {len(validated_retry)} HPO term(s) via scavenger (retry).")
+                    print(
+                        f"[extract] Validated {len(validated_retry)} HPO term(s) via scavenger (retry)."
+                    )
                 items = validated_retry
             else:
                 # Last resort on retry: maybe the whole retry output is a single JSON object
@@ -407,14 +437,15 @@ def extract_hpo_terms(
                             [maybe_retry], clinical_text, max_items=max_pheno_items
                         )
                         if debug_logging:
-                            print(f"[extract] Validated {len(validated_retry)} HPO term(s) from single-object output (retry).")
+                            print(
+                                f"[extract] Validated {len(validated_retry)} HPO term(s) from single-object output (retry)."
+                            )
                         items = validated_retry
                 except Exception:
                     pass
 
         # Keep both raw outputs for auditing if requested
         raw_text = (raw_text or "") + "\n\n--- RETRY ---\n\n" + (raw_text_retry or "")
-
 
     return (items, (raw_text if return_raw_model_text else None))
 
@@ -436,13 +467,13 @@ def build_minimal_phenopacket_from_hpo_list(
     for it in hpo_list:
         hpo_id = it.get("hpo_id")
         hpo_label = it.get("hpo_label")
-        if isinstance(hpo_id, str) and _HPO_ID_RE.match(hpo_id) and isinstance(hpo_label, str) and hpo_label.strip():
-            phenos.append({
-                "type": {
-                    "id": hpo_id,
-                    "label": hpo_label,
-                }
-            })
+        if (
+            isinstance(hpo_id, str)
+            and _HPO_ID_RE.match(hpo_id)
+            and isinstance(hpo_label, str)
+            and hpo_label.strip()
+        ):
+            phenos.append({"type": {"id": hpo_id, "label": hpo_label}})
 
     packet = {
         "id": patient_id,
