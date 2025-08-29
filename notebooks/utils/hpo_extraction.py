@@ -56,6 +56,26 @@ Rules that are mandatory:
 3) If you are uncertain or cannot find a supporting quote in the text, DO NOT include the item.
 4) DO NOT summarize, DO NOT include any other keys, DO NOT include explanations outside the JSON.
 5) The JSON must be valid and parseable.
+6) Forbidden content: do NOT output diseases (e.g., “Kabuki syndrome”), genes (e.g., “ZIC2”), article metadata (title, authors, doi), figure/table captions, or methods. Only phenotype terms from HPO (HP:#######).
+7) Evidence MUST be copied verbatim from the provided text and be a human-readable phrase/short sentence describing the phenotype.
+
+Example (CORRECT):
+<<<JSON
+[
+  {"hpo_id":"HP:0001250","hpo_label":"Seizure","evidence":"drug-resistant infantile epilepsy"}
+]
+JSON>>>
+
+Example (INCORRECT — DO NOT DO THIS):
+<<<JSON
+[
+  {"hpo_id":"OMIM:147920","hpo_label":"Kabuki syndrome","evidence":"Kabuki syndrome"},
+  {"hpo_id":"ZIC2","hpo_label":"ZIC family member 2","evidence":"ZIC2 mutation"},
+  {"hpo_id":"HP:0001250","hpo_label":"Seizure","evidence":"Figure 2 shows seizures"}  # figure caption is not acceptable evidence
+]
+JSON>>>
+
+
 """
 
 _USER_INSTRUCTIONS = """Extract up to {max_items} distinct HPO phenotypes from the provided text.
@@ -414,7 +434,7 @@ def _parse_and_validate_chunk_output(
 
 def extract_hpo_terms(
     clinical_text: str,
-    model: str = "llama3.2:latest",
+    model: str = "gpt-oss:latest",
     *,
     max_pheno_items: int = 50,
     timeout_s: int = 180,
