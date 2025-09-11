@@ -137,3 +137,25 @@ def test_build_minimal_phenopacket_from_hpo_list():
    assert packet["phenotypicFeatures"] == [
        {"type": {"id": "HP:0001250", "label": "Seizure"}}
    ]
+
+def test_extract_hpo_terms_returns_empty_when_no_valid_json_anywhere(monkeypatch):
+   """Return [] when model never produces a parseable/valid JSON block (including retry)."""
+   from notebooks.utils import hpo_extraction as he
+
+   # Stub the model call to always return junk that cannot match any fallback.
+   monkeypatch.setattr(he, "_ask_model", lambda *a, **k: "this is not json and has no brackets or keys")
+
+   items, raw = he.extract_hpo_terms(
+       clinical_text="short clinical note",
+       model="dummy-model",
+       max_pheno_items=5,
+       timeout_s=1,
+       return_raw_model_text=True,
+       debug_logging=False,
+       chunk_max_chars=100,      # keep to a single chunk
+       chunk_overlap_chars=0,
+   )
+
+   assert items == []                   # nothing validated
+   assert isinstance(raw, str) and raw  # raw text is returned when requested
+   assert "--- RETRY ---" in raw        # confirms the retry path executed
