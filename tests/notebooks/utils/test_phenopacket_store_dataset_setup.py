@@ -9,7 +9,6 @@ exercise control flow and ensure a plausible pmids.pkl path is returned.
 import os
 import sys
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 

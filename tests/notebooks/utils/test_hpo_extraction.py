@@ -11,7 +11,7 @@ The tests focus on:
 
 import os
 import sys
-from typing import Tuple, List, Dict
+from typing import List, Dict
 
 import pytest
 
