@@ -80,3 +80,18 @@ def test_load_and_validate_dataset_missing_required_columns(tmp_path: Path):
    pd.DataFrame({"pmid": ["X"], "input": ["a.txt"]}).to_csv(csv_path, index=False)  # missing 'truth'
    with pytest.raises(KeyError):
        load_and_validate_dataset(str(csv_path))
+
+def test_load_and_validate_dataset_raises_on_missing_required_columns(tmp_path):
+   """Raise KeyError when required columns are absent."""
+   from notebooks.utils import dataset_loading as dl
+
+   # Create a CSV missing the 'truth' column.
+   csv_path = tmp_path / "dataset_missing_truth.csv"
+   csv_path.write_text("pmid,input\n9106527,/tmp/foo.pdf\n", encoding="utf-8")
+
+   with pytest.raises(KeyError) as excinfo:
+       dl.load_and_validate_dataset(str(csv_path), max_input_existence_checks=0, verbose=False)
+
+   # Message should mention missing columns (don't rely on set ordering).
+   assert "missing required columns" in str(excinfo.value).lower()
+   assert "truth" in str(excinfo.value)
