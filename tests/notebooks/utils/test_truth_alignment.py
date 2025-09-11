@@ -37,10 +37,14 @@ def _write_minimal_pp(path: Path, patient_id: str, hpos=None):
 
 def test_load_and_align_truth(tmp_path: Path):
    # Create minimal dataset DataFrame with two rows and real files on disk
-   input_a = tmp_path / "a.txt"; input_a.write_text("lorem", encoding="utf-8")
-   input_b = tmp_path / "b.txt"; input_b.write_text("ipsum", encoding="utf-8")
-   truth_a = tmp_path / "a.json"; _write_minimal_pp(truth_a, "patient-A")
-   truth_b = tmp_path / "b.json"; _write_minimal_pp(truth_b, "patient-B")
+   input_a = tmp_path / "a.txt"
+   input_a.write_text("lorem", encoding="utf-8")
+   input_b = tmp_path / "b.txt"
+   input_b.write_text("ipsum", encoding="utf-8")
+   truth_a = tmp_path / "a.json"
+   _write_minimal_pp(truth_a, "patient-A")
+   truth_b = tmp_path / "b.json"
+   _write_minimal_pp(truth_b, "patient-B")
 
    df = pd.DataFrame(
        {"pmid": ["PMID_A", "PMID_B"], "input": [str(input_a), str(input_b)], "truth": [str(truth_a), str(truth_b)]}
