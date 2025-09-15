@@ -15,7 +15,7 @@ import logging
 import re
 import subprocess
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 __all__ = ["extract_hpo_terms", "build_minimal_phenopacket_from_hpo_list"]
 
@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 _JSON_START = "<<<JSON"
 _JSON_END = "JSON>>>"
 
+# Use raw string to avoid warnings
 _HPO_ID_RE = re.compile(r"^HP:\d{7}$")
+
 # Small guard for common drift when seizures aren't mentioned in the source text.
 _COMMON_FAKE_DEFAULTS = {"Seizure", "seizure"}
 
@@ -58,24 +60,6 @@ Rules that are mandatory:
 5) The JSON must be valid and parseable.
 6) Forbidden content: do NOT output diseases (e.g., “Kabuki syndrome”), genes (e.g., “ZIC2”), article metadata (title, authors, doi), figure/table captions, or methods. Only phenotype terms from HPO (HP:#######).
 7) Evidence MUST be copied verbatim from the provided text and be a human-readable phrase/short sentence describing the phenotype.
-
-Example (CORRECT):
-<<<JSON
-[
-  {"hpo_id":"HP:0001250","hpo_label":"Seizure","evidence":"drug-resistant infantile epilepsy"}
-]
-JSON>>>
-
-Example (INCORRECT — DO NOT DO THIS):
-<<<JSON
-[
-  {"hpo_id":"OMIM:147920","hpo_label":"Kabuki syndrome","evidence":"Kabuki syndrome"},
-  {"hpo_id":"ZIC2","hpo_label":"ZIC family member 2","evidence":"ZIC2 mutation"},
-  {"hpo_id":"HP:0001250","hpo_label":"Seizure","evidence":"Figure 2 shows seizures"}  # figure caption is not acceptable evidence
-]
-JSON>>>
-
-
 """
 
 _USER_INSTRUCTIONS = """Extract up to {max_items} distinct HPO phenotypes from the provided text.
@@ -109,11 +93,7 @@ def _format_retry_prompt(original_clinical_text: str, max_items: int) -> str:
         '"hpo_id", "hpo_label", "evidence" — wrapped between <<<JSON and JSON>>>.\n'
         "Do not add any commentary.\n"
     )
-    return (
-        tightened
-        + "\n\n"
-        + _format_user_prompt(original_clinical_text, max_items=max_items)
-    )
+    return tightened + "\n\n" + _format_user_prompt(original_clinical_text, max_items=max_items)
 
 
 # -----------------------------
@@ -180,7 +160,6 @@ def _call_ollama_http(model: str, user_prompt: str, timeout_s: int = 180) -> str
             if piece.get("done"):
                 break
         except (json.JSONDecodeError, UnicodeDecodeError):
-            # Ignore partial/garbled stream fragments; keep reading.
             continue
     return "".join(raw_chunks)
 
@@ -200,15 +179,11 @@ def _call_ollama_cli(model: str, user_prompt: str, timeout_s: int = 180) -> str:
     except FileNotFoundError:
         raise RuntimeError("Ollama not found. Install Ollama or start the daemon.")
     if proc.returncode != 0:
-        raise RuntimeError(
-            f"Ollama CLI error {proc.returncode}: {proc.stderr.decode('utf-8', 'ignore')}"
-        )
+        raise RuntimeError(f"Ollama CLI error {proc.returncode}: {proc.stderr.decode('utf-8', 'ignore')}")
     return proc.stdout.decode("utf-8", "ignore")
 
 
-def _ask_model(
-    model: str, user_prompt: str, timeout_s: int = 180, debug: bool = False
-) -> str:
+def _ask_model(model: str, user_prompt: str, timeout_s: int = 180, debug: bool = False) -> str:
     """Try HTTP first, then CLI; return the raw model text."""
     try:
         out = _call_ollama_http(model, user_prompt, timeout_s=timeout_s)
@@ -237,28 +212,16 @@ def _slice_between_sentinels(text: str) -> Optional[str]:
     j = text.find(_JSON_END, i + len(_JSON_START))
     if j < 0:
         return None
-    return text[i + len(_JSON_START) : j].strip()
-
-
-def _ensure_list(obj: Any) -> Optional[List[Any]]:
-    """Identity if obj is a list; otherwise None."""
-    return obj if isinstance(obj, list) else None
+    return text[i + len(_JSON_START): j].strip()
 
 
 def _dict_looks_like_item(obj: Any) -> bool:
     """Heuristic: object contains the three required keys."""
-    return (
-        isinstance(obj, dict)
-        and "hpo_id" in obj
-        and "hpo_label" in obj
-        and "evidence" in obj
-    )
+    return isinstance(obj, dict) and "hpo_id" in obj and "hpo_label" in obj and "evidence" in obj
 
 
 _JSON_ARRAY_FINDER = re.compile(r"\[\s*\{.*?\}\s*\]", flags=re.DOTALL)
-_RESULTS_ARRAY_FINDER = re.compile(
-    r'"results"\s*:\s*(\[\s*\{.*?\}\s*\])', flags=re.DOTALL
-)
+_RESULTS_ARRAY_FINDER = re.compile(r'"results"\s*:\s*(\[\s*\{.*?\}\s*\])', flags=re.DOTALL)
 
 
 def _find_any_json_array_block(text: str) -> Optional[str]:
@@ -274,10 +237,7 @@ def _find_results_array(text: str) -> Optional[str]:
 
 
 def _validate_and_filter_items(
-    items: Iterable[Dict[str, Any]],
-    source_text: str,
-    max_items: int,
-    apply_seizure_blocker: bool = True,
+    items: Iterable[Dict[str, Any]], source_text: str, max_items: int, apply_seizure_blocker: bool = True
 ) -> List[Dict[str, str]]:
     """
     Validate candidate items and drop evidence. Enforces:
@@ -315,105 +275,62 @@ def _validate_and_filter_items(
 
 
 # -----------------------------
-# Parsing strategies (split to reduce complexity)
+# Parsing strategies
 # -----------------------------
 
 
-def _try_parse_with_sentinels(
-    raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any
-) -> List[Dict[str, str]]:
+def _try_parse_with_sentinels(raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any) -> List[Dict[str, str]]:
     parsed = _slice_between_sentinels(raw_text)
     if parsed is None:
         return []
     try:
         arr = json.loads(parsed)
-        items = _validate_and_filter_items(arr, source_text, max_items=max_items)
-        if debug:
-            logger.debug(
-                "[extract] Chunk %s: validated %d item(s) via sentinels.",
-                chunk_idx,
-                len(items),
-            )
-        return items
+        return _validate_and_filter_items(arr, source_text, max_items=max_items)
     except (json.JSONDecodeError, TypeError, ValueError):
         return []
 
 
-def _try_parse_with_array_scavenger(
-    raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any
-) -> List[Dict[str, str]]:
+def _try_parse_with_array_scavenger(raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any) -> List[Dict[str, str]]:
     scavenged = _find_any_json_array_block(raw_text)
     if not scavenged:
         return []
     try:
         arr = json.loads(scavenged)
-        items = _validate_and_filter_items(arr, source_text, max_items=max_items)
-        if debug:
-            logger.debug(
-                "[extract] Chunk %s: validated %d item(s) via array scavenger.",
-                chunk_idx,
-                len(items),
-            )
-        return items
+        return _validate_and_filter_items(arr, source_text, max_items=max_items)
     except (json.JSONDecodeError, TypeError, ValueError):
         return []
 
 
-def _try_parse_with_results_array(
-    raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any
-) -> List[Dict[str, str]]:
+def _try_parse_with_results_array(raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any) -> List[Dict[str, str]]:
     results_arr = _find_results_array(raw_text)
     if not results_arr:
         return []
     try:
         arr = json.loads(results_arr)
-        items = _validate_and_filter_items(arr, source_text, max_items=max_items)
-        if debug:
-            logger.debug(
-                "[extract] Chunk %s: validated %d item(s) from results[].",
-                chunk_idx,
-                len(items),
-            )
-        return items
+        return _validate_and_filter_items(arr, source_text, max_items=max_items)
     except (json.JSONDecodeError, TypeError, ValueError):
         return []
 
 
-def _try_parse_with_single_object(
-    raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any
-) -> List[Dict[str, str]]:
+def _try_parse_with_single_object(raw_text: str, source_text: str, max_items: int, debug: bool, chunk_idx: Any) -> List[Dict[str, str]]:
     try:
         maybe = json.loads(raw_text)
     except (json.JSONDecodeError, TypeError, ValueError):
         return []
     if not _dict_looks_like_item(maybe):
         return []
-    items = _validate_and_filter_items([maybe], source_text, max_items=max_items)
-    if debug:
-        logger.debug(
-            "[extract] Chunk %s: validated %d item(s) from single-object.",
-            chunk_idx,
-            len(items),
-        )
-    return items
+    return _validate_and_filter_items([maybe], source_text, max_items=max_items)
 
 
 # -----------------------------
-# Per-chunk parse/validate orchestration
+# Orchestration
 # -----------------------------
 
 
 def _parse_and_validate_chunk_output(
-    raw_text: str,
-    source_text: str,
-    max_items: int,
-    debug_logging: bool,
-    chunk_idx: Optional[int] = None,
+    raw_text: str, source_text: str, max_items: int, debug_logging: bool, chunk_idx: Optional[int] = None
 ) -> List[Dict[str, str]]:
-    """
-    Try multiple parsing strategies (in order of preference) against one chunk's
-    raw model output. Returns the first non-empty list of validated items.
-    """
+    """Try multiple parsing strategies against one chunk’s raw model output."""
     strategies: List[Callable[[str, str, int, bool, Any], List[Dict[str, str]]]] = [
         _try_parse_with_sentinels,
         _try_parse_with_array_scavenger,
@@ -433,76 +350,62 @@ def _parse_and_validate_chunk_output(
 
 
 def extract_hpo_terms(
-   clinical_text: str,
-   model: str = "llama3.2:latest",
-   max_pheno_items: int = 20,
-   timeout_s: int = 60,
-   return_raw_model_text: bool = False,
-   debug_logging: bool = False,
-   chunk_max_chars: int = 3000,
-   chunk_overlap_chars: int = 300,
-):
-   """
-   Deterministic HPO term extraction from clinical text using Ollama.
+    clinical_text: str,
+    model: str = "llama3.2:latest",
+    max_pheno_items: int = 20,
+    timeout_s: int = 60,
+    return_raw_model_text: bool = False,
+    debug_logging: bool = False,
+    chunk_max_chars: int = 3000,
+    chunk_overlap_chars: int = 300,
+) -> tuple[List[Dict[str, str]], str]:
+    """
+    Deterministic HPO term extraction from clinical text using Ollama.
 
-   - Splits long text into overlapping chunks before sending to the model.
-   - Ensures each chunk runs within timeout (avoids model hanging on very long input).
-   - Aggregates validated HPO term objects across all chunks.
-   - Returns parsed items and optionally the concatenated raw model text.
+    Splits long text into chunks, sends to the model, validates HPO outputs,
+    and retries once on the first chunk if needed.
+    Always returns (items, raw_model_text).
+    """
+    # Split into overlapping chunks
+    chunks = []
+    start = 0
+    while start < len(clinical_text):
+        end = min(len(clinical_text), start + chunk_max_chars)
+        chunks.append(clinical_text[start:end])
+        start += chunk_max_chars - chunk_overlap_chars
 
-   Args:
-       clinical_text: Full clinical notes or case report text.
-       model: Ollama model identifier (default: "llama3.2:latest").
-       max_pheno_items: Soft cap on number of phenotype objects to accept.
-       timeout_s: Maximum seconds to allow per chunk call before timeout.
-       return_raw_model_text: If True, return raw LLM text alongside parsed items.
-       debug_logging: If True, log detailed per-chunk activity.
-       chunk_max_chars: Maximum characters per chunk (default: 3000).
-       chunk_overlap_chars: Overlap between consecutive chunks (default: 300).
+    if debug_logging:
+        logger.info("[extract] Split text into %d chunk(s)", len(chunks))
 
-   Returns:
-       items: List of parsed, validated HPO objects across all chunks.
-       raw_model_text (optional): Concatenated raw text returned by the model.
-   """
-   from textwrap import wrap
+    all_items: List[Dict[str, str]] = []
+    raw_text_accum: List[str] = []
 
-   # Split text into overlapping chunks
-   chunks = []
-   start = 0
-   while start < len(clinical_text):
-       end = min(len(clinical_text), start + chunk_max_chars)
-       chunks.append(clinical_text[start:end])
-       start += chunk_max_chars - chunk_overlap_chars
+    for idx, chunk in enumerate(chunks, start=1):
+        if debug_logging:
+            logger.info("[extract] Sending chunk %d/%d (len=%d chars)", idx, len(chunks), len(chunk))
 
-   if debug_logging:
-       logger.info("[extract] Split text into %d chunk(s)", len(chunks))
+        try:
+            raw_text = _ask_model(model, chunk, timeout_s=timeout_s, debug=debug_logging)
+            raw_text_accum.append(raw_text or "")
 
-   all_items = []
-   raw_text_accum = []
+            items = _parse_and_validate_chunk_output(raw_text, chunk, max_items=max_pheno_items, debug_logging=debug_logging, chunk_idx=idx)
 
-   for idx, chunk in enumerate(chunks, start=1):
-       if debug_logging:
-           logger.info("[extract] Sending chunk %d/%d (len=%d chars)", idx, len(chunks), len(chunk))
+            if not items and idx == 1:
+                retry_prompt = _format_retry_prompt(chunk, max_items=max_pheno_items)
+                retry_raw = _ask_model(model, retry_prompt, timeout_s=timeout_s, debug=debug_logging)
+                raw_text_accum.append("\n--- RETRY ---\n" + (retry_raw or ""))
+                items = _parse_and_validate_chunk_output(retry_raw, chunk, max_items=max_pheno_items, debug_logging=debug_logging, chunk_idx=f"{idx}-retry")
 
-       try:
-           raw_text = _ask_model(model, chunk, timeout_s=timeout_s, debug=debug_logging)
-           raw_text_accum.append(raw_text or "")
+            all_items.extend(items)
 
-           items = _parse_and_validate_chunk_output(
-               raw_text, chunk, max_pheno_items=max_pheno_items, chunk_idx=idx
-           )
-           all_items.extend(items)
+        except (RuntimeError, ValueError, OSError) as e:
+            logger.warning("[extract] Chunk %d failed: %s", idx, e)
 
-       except Exception as e:
-           logger.warning("[extract] Chunk %d failed: %s", idx, e)
+    if debug_logging:
+        logger.info("[extract] Total validated HPO objects: %d", len(all_items))
 
-   if debug_logging:
-       logger.info("[extract] Total validated HPO objects: %d", len(all_items))
+    return all_items, "\n\n".join(raw_text_accum)
 
-   if return_raw_model_text:
-       return all_items, "\n\n".join(raw_text_accum)
-   else:
-       return all_items
 
 def build_minimal_phenopacket_from_hpo_list(
     patient_id: str,
@@ -511,23 +414,15 @@ def build_minimal_phenopacket_from_hpo_list(
     created_by: str = "P5-demo-notebook",
     schema_version: str = "2.0.2",
 ) -> Dict[str, Any]:
-    """
-    Construct a minimal Phenopacket dict from validated HPO items
-    (no ontology lookup or normalization is performed).
-    """
+    """Construct a minimal Phenopacket dict from validated HPO items."""
     phenos: List[Dict[str, Any]] = []
     for it in hpo_list:
         hpo_id = it.get("hpo_id")
         hpo_label = it.get("hpo_label")
-        if (
-            isinstance(hpo_id, str)
-            and _HPO_ID_RE.match(hpo_id)
-            and isinstance(hpo_label, str)
-            and hpo_label.strip()
-        ):
+        if isinstance(hpo_id, str) and _HPO_ID_RE.match(hpo_id) and isinstance(hpo_label, str) and hpo_label.strip():
             phenos.append({"type": {"id": hpo_id, "label": hpo_label}})
 
-    packet = {
+    return {
         "id": patient_id,
         "subject": {"id": patient_id},
         "phenotypicFeatures": phenos,
@@ -537,4 +432,3 @@ def build_minimal_phenopacket_from_hpo_list(
             "phenopacketSchemaVersion": schema_version,
         },
     }
-    return packet

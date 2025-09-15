@@ -42,28 +42,6 @@ def run_hpo_batch_inference(
 
    Uses cached `.txt` files from experimental-data/text_cache/debug_dumps/
    if available, otherwise falls back to PDF parsing.
-
-   Args:
-       list_of_pmids_aligned: List of PMIDs (aligned to ground-truth).
-       list_of_input_paths_aligned: Corresponding list of input file paths (PDFs).
-       list_of_patient_ids_aligned: Corresponding list of patient IDs from truth.
-       directory_for_raw_llm_outputs: Folder for saving raw LLM outputs.
-       directory_for_predicted_jsons: Folder for saving predicted phenopacket JSONs.
-       ollama_model_name: Model identifier (default: llama3.2:latest).
-       sleep_seconds_between_cases: Optional sleep between cases.
-       write_raw_model_text: If True, dump raw LLM text to disk.
-       write_predicted_json: If True, dump validated JSON to disk.
-       debug_logging: Enable verbose logs per case/chunk.
-       timeout_s: Max seconds per chunk before timeout.
-       chunk_max_chars: Maximum characters per chunk for model input.
-       chunk_overlap_chars: Overlap between chunks for context continuity.
-
-   Returns:
-       BatchResult: dynamic object with attributes:
-         - successful_outcomes: list of successful Outcome objects
-         - failed_outcomes: list of failed Outcome objects
-         - total_successes(): count of successes
-         - total_failures(): count of failures
    """
    pdf_text_cache = PdfTextCache(
        experimental_data_root=str(Path(directory_for_raw_llm_outputs).parents[1])
@@ -106,17 +84,13 @@ def run_hpo_batch_inference(
                )
                predicted_packet_util = UtilPhenopacket(predicted_packet_json)
 
+               raw_path, json_path = None, None
                if write_raw_model_text:
                    raw_path = Path(directory_for_raw_llm_outputs) / f"{pmid}__raw.txt"
                    raw_path.write_text(raw_model_text or "", encoding="utf-8")
-               else:
-                   raw_path = None
-
                if write_predicted_json:
                    json_path = Path(directory_for_predicted_jsons) / f"{pmid}__{patient_id}.json"
                    json_path.write_text(predicted_packet_util.to_json(indent=2), encoding="utf-8")
-               else:
-                   json_path = None
 
                successful_outcomes.append(
                    type("Outcome", (), {
@@ -127,7 +101,7 @@ def run_hpo_batch_inference(
                    })
                )
 
-           except Exception as error:
+           except (RuntimeError, ValueError, OSError) as error:
                failed_outcomes.append(
                    type("Outcome", (), {
                        "pmid": pmid,
