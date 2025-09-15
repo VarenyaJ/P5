@@ -433,86 +433,76 @@ def _parse_and_validate_chunk_output(
 
 
 def extract_hpo_terms(
-    clinical_text: str,
-    model: str = "gpt-oss:latest",
-    *,
-    max_pheno_items: int = 50,
-    timeout_s: int = 180,
-    return_raw_model_text: bool = False,
-    debug_logging: bool = False,
-    chunk_max_chars: int = 5500,
-    chunk_overlap_chars: int = 300,
-) -> Tuple[List[Dict[str, str]], Optional[str]]:
-    """
-    Extract HPO terms from clinical text via an Ollama-served model.
+   clinical_text: str,
+   model: str = "llama3.2:latest",
+   max_pheno_items: int = 20,
+   timeout_s: int = 60,
+   return_raw_model_text: bool = False,
+   debug_logging: bool = False,
+   chunk_max_chars: int = 3000,
+   chunk_overlap_chars: int = 300,
+):
+   """
+   Deterministic HPO term extraction from clinical text using Ollama.
 
-    The text is chunked to avoid context truncation. We accept the first chunk that
-    yields valid items. If none do, we retry once on the first chunk with a
-    tightened output-only instruction.
-    """
-    if not isinstance(clinical_text, str) or not clinical_text.strip():
-        return ([], None)
+   - Splits long text into overlapping chunks before sending to the model.
+   - Ensures each chunk runs within timeout (avoids model hanging on very long input).
+   - Aggregates validated HPO term objects across all chunks.
+   - Returns parsed items and optionally the concatenated raw model text.
 
-    items: List[Dict[str, str]] = []
-    raw_text_accum: List[str] = []
+   Args:
+       clinical_text: Full clinical notes or case report text.
+       model: Ollama model identifier (default: "llama3.2:latest").
+       max_pheno_items: Soft cap on number of phenotype objects to accept.
+       timeout_s: Maximum seconds to allow per chunk call before timeout.
+       return_raw_model_text: If True, return raw LLM text alongside parsed items.
+       debug_logging: If True, log detailed per-chunk activity.
+       chunk_max_chars: Maximum characters per chunk (default: 3000).
+       chunk_overlap_chars: Overlap between consecutive chunks (default: 300).
 
-    for chunk_idx, text_chunk in enumerate(
-        _chunk_text(
-            clinical_text, max_chars=chunk_max_chars, overlap=chunk_overlap_chars
-        ),
-        start=1,
-    ):
-        user_prompt = _format_user_prompt(text_chunk, max_items=max_pheno_items)
-        if debug_logging:
-            logger.debug(
-                "[extract] Sending chunk %d to model (len=%d).",
-                chunk_idx,
-                len(text_chunk),
-            )
-        raw_text = _ask_model(
-            model, user_prompt, timeout_s=timeout_s, debug=debug_logging
-        )
-        raw_text_accum.append(raw_text or "")
+   Returns:
+       items: List of parsed, validated HPO objects across all chunks.
+       raw_model_text (optional): Concatenated raw text returned by the model.
+   """
+   from textwrap import wrap
 
-        items = _parse_and_validate_chunk_output(
-            raw_text,
-            text_chunk,
-            max_items=max_pheno_items,
-            debug_logging=debug_logging,
-            chunk_idx=chunk_idx,
-        )
-        if items:
-            break
+   # Split text into overlapping chunks
+   chunks = []
+   start = 0
+   while start < len(clinical_text):
+       end = min(len(clinical_text), start + chunk_max_chars)
+       chunks.append(clinical_text[start:end])
+       start += chunk_max_chars - chunk_overlap_chars
 
-    if not items:
-        # One full retry on the first chunk only (fail-closed behavior).
-        first_chunk = next(
-            _chunk_text(
-                clinical_text, max_chars=chunk_max_chars, overlap=chunk_overlap_chars
-            ),
-            "",
-        )
-        retry_prompt = _format_retry_prompt(first_chunk, max_items=max_pheno_items)
-        if debug_logging:
-            logger.debug(
-                "[extract] No valid items after chunks → single full retry on first chunk."
-            )
-        raw_text_retry = _ask_model(
-            model, retry_prompt, timeout_s=timeout_s, debug=debug_logging
-        )
-        raw_text_accum.append("\n--- RETRY ---\n" + (raw_text_retry or ""))
+   if debug_logging:
+       logger.info("[extract] Split text into %d chunk(s)", len(chunks))
 
-        items = _parse_and_validate_chunk_output(
-            raw_text_retry,
-            first_chunk,
-            max_items=max_pheno_items,
-            debug_logging=debug_logging,
-            chunk_idx="retry",
-        )
+   all_items = []
+   raw_text_accum = []
 
-    raw_text_combined = "\n\n".join(raw_text_accum).strip()
-    return (items, (raw_text_combined if return_raw_model_text else None))
+   for idx, chunk in enumerate(chunks, start=1):
+       if debug_logging:
+           logger.info("[extract] Sending chunk %d/%d (len=%d chars)", idx, len(chunks), len(chunk))
 
+       try:
+           raw_text = _ask_model(model, chunk, timeout_s=timeout_s, debug=debug_logging)
+           raw_text_accum.append(raw_text or "")
+
+           items = _parse_and_validate_chunk_output(
+               raw_text, chunk, max_pheno_items=max_pheno_items, chunk_idx=idx
+           )
+           all_items.extend(items)
+
+       except Exception as e:
+           logger.warning("[extract] Chunk %d failed: %s", idx, e)
+
+   if debug_logging:
+       logger.info("[extract] Total validated HPO objects: %d", len(all_items))
+
+   if return_raw_model_text:
+       return all_items, "\n\n".join(raw_text_accum)
+   else:
+       return all_items
 
 def build_minimal_phenopacket_from_hpo_list(
     patient_id: str,
